@@ -160,57 +160,40 @@ export default function Chatbot({ isOpen, onToggle }: ChatbotProps) {
       }`}>
         <CardContent className="flex flex-col h-[420px] p-4">
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto space-y-3 mb-4 px-1">
+          <div className="flex-1 overflow-y-auto space-y-4 mb-4">
             {messages.map((message) => (
-              <div key={message.id} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} group`}>
-                <div className={`max-w-[85%] rounded-2xl px-4 py-3 transition-all duration-300 hover:shadow-lg break-words overflow-hidden ${
+              <div key={message.id} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                <div className={`max-w-[80%] rounded-lg p-3 transition-all duration-200 hover:scale-105 hover:shadow-md break-words overflow-hidden ${
                   message.role === 'user' 
-                    ? 'bg-gradient-to-r from-studypal-blue to-studypal-cyan text-white shadow-md hover:shadow-blue-200' 
-                    : 'bg-white border border-gray-200 text-gray-800 shadow-sm hover:shadow-gray-200 hover:border-gray-300'
+                    ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                    : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
                 }`}>
-                  <div className="flex items-start gap-3">
-                    {message.role === 'assistant' && (
-                      <div className="flex-shrink-0 w-6 h-6 bg-gradient-to-r from-studypal-blue to-studypal-cyan rounded-full flex items-center justify-center mt-0.5">
-                        <Bot className="h-3.5 w-3.5 text-white" />
-                      </div>
-                    )}
-                    {message.role === 'user' && (
-                      <div className="flex-shrink-0 w-6 h-6 bg-white/20 rounded-full flex items-center justify-center mt-0.5">
-                        <User className="h-3.5 w-3.5 text-white" />
-                      </div>
-                    )}
-                    <div className={`flex-1 ${message.role === 'user' ? 'text-white' : 'text-gray-800'}`}>
-                      <div 
-                        className="text-sm leading-relaxed break-words overflow-wrap-anywhere whitespace-pre-wrap"
-                        dangerouslySetInnerHTML={{
-                          __html: message.content
-                            .replace(/\*\*(.*?)\*\*/g, `<strong class="${message.role === 'user' ? 'text-white font-semibold' : 'text-studypal-blue font-semibold'}">$1</strong>`)
-                            .replace(/\*(.*?)\*/g, `<em class="${message.role === 'user' ? 'text-white/90' : 'text-gray-700'}">$1</em>`)
-                            .replace(/`(.*?)`/g, `<code class="${message.role === 'user' ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-800'} px-2 py-0.5 rounded text-xs font-mono">$1</code>`)
-                            .replace(/\n\n/g, '<br><br>')
-                            .replace(/\n/g, '<br>')
-                        }} 
-                      />
-                      <div className={`text-xs mt-2 ${message.role === 'user' ? 'text-white/70' : 'text-gray-500'} opacity-0 group-hover:opacity-100 transition-opacity duration-200`}>
-                        {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </div>
-                    </div>
+                  <div className="flex items-start gap-2">
+                    {message.role === 'assistant' && <Bot className="h-4 w-4 mt-0.5 flex-shrink-0" />}
+                    {message.role === 'user' && <User className="h-4 w-4 mt-0.5 flex-shrink-0" />}
+                    <div 
+                      className="text-sm leading-relaxed break-words overflow-wrap-anywhere whitespace-pre-wrap" 
+                      dangerouslySetInnerHTML={{
+                        __html: message.content
+                          .replace(/\*\*(.*?)\*\*/g, `<strong class="${message.role === 'user' ? 'text-white font-semibold' : 'text-blue-600 font-semibold'}">$1</strong>`)
+                          .replace(/\*(.*?)\*/g, `<em class="${message.role === 'user' ? 'text-white/90' : 'text-gray-700'}">$1</em>`)
+                          .replace(/`(.*?)`/g, `<code class="${message.role === 'user' ? 'bg-white/20 text-white' : 'bg-gray-200 text-gray-800'} px-2 py-0.5 rounded text-xs font-mono">$1</code>`)
+                          .replace(/\n\n/g, '<br><br>')
+                          .replace(/\n/g, '<br>')
+                      }} 
+                    />
                   </div>
                 </div>
               </div>
             ))}
             
             {isLoading && (
-              <div className="flex justify-start group">
-                <div className="bg-white border border-gray-200 rounded-2xl px-4 py-3 shadow-sm">
-                  <div className="flex items-center gap-3">
-                    <div className="flex-shrink-0 w-6 h-6 bg-gradient-to-r from-studypal-blue to-studypal-cyan rounded-full flex items-center justify-center">
-                      <Bot className="h-3.5 w-3.5 text-white" />
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin text-studypal-blue" />
-                      <span className="text-sm text-gray-600 font-medium">PalBot is thinking...</span>
-                    </div>
+              <div className="flex justify-start">
+                <div className="bg-gray-100 rounded-lg p-3">
+                  <div className="flex items-center gap-2">
+                    <Bot className="h-4 w-4" />
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span className="text-sm text-gray-600">Thinking...</span>
                   </div>
                 </div>
               </div>
