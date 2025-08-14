@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate study plan using Gemini
-    const studyPlan = await generateStudyPlan(body, body.existingScheduleContext)
+    const studyPlan = await generateStudyPlan(body, (body as any).existingScheduleContext)
     
     return NextResponse.json(studyPlan)
   } catch (error: any) {
