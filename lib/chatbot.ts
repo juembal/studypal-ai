@@ -147,7 +147,7 @@ Always follow: genuine answer → educational transition → specific StudyPal f
       const savedPlans = JSON.parse(localStorage.getItem('studypal_plans') || '[]')
       const activeePlans = savedPlans.filter((plan: any) => plan.status !== 'completed')
       
-      const allSubjects: string[] = [...new Set(savedPlans.flatMap((plan: any) => plan.subjects || []))]
+      const allSubjects = Array.from(new Set(savedPlans.flatMap((plan: any) => (plan.subjects as string[]) || []))) as string[]
       const studyLevels = savedPlans.map((plan: any) => plan.studyLevel).filter(Boolean)
       const mostCommonLevel = studyLevels.length > 0 ? studyLevels[0] : 'undergraduate'
       
