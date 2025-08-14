@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Slider } from '@/components/ui/slider'
-import { StudyPlanRequest } from '@/lib/gemini'
+import { StudyPlanRequest } from '@/lib/types'
 import { Plus, X, Loader2, Calendar, Clock, Brain, BookOpen } from 'lucide-react'
 
 interface StudyPlanFormProps {

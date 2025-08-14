@@ -1,4 +1,4 @@
-import { StudyPlan, StudyPlanRequest } from './groq'
+import { StudyPlan, StudyPlanRequest } from './types'
 
 export interface TimeSlot {
   day: string

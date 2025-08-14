@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { generateStudyPlan, StudyPlanRequest } from '@/lib/gemini'
+import { generateStudyPlan, StudyPlanRequest } from '@/lib/groq'
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Generate study plan using Gemini
+    // Generate study plan using Groq AI
     const studyPlan = await generateStudyPlan(body, (body as any).existingScheduleContext)
     
     return NextResponse.json(studyPlan)

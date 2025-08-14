@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Flashcard } from '@/lib/gemini'
+import { Flashcard } from '@/lib/types'
 import { RotateCcw, CheckCircle, XCircle, Eye, EyeOff, Trophy, RefreshCw, PenTool, BookOpen } from 'lucide-react'
 
 interface FlashcardQuizProps {

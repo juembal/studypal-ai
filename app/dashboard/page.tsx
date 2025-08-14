@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Calendar, Clock, BookOpen, Target, TrendingUp, Plus, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { StudyPlan } from '@/lib/gemini'
+import { StudyPlan } from '@/lib/types'
 
 interface StoredStudyPlan {
   id: string
