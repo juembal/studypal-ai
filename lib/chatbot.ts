@@ -14,24 +14,61 @@ export interface ChatContext {
 }
 
 export class StudyPalChatbot {
-  private static readonly SYSTEM_PROMPT = `You are "PalBot," an AI assistant designed to help students. Your core function is to provide a short, direct answer to a user's question, then immediately follow up with a related, educational transition. Your tone is helpful and encouraging, and you should always use clear formatting to make information easy to digest.
+  private static readonly SYSTEM_PROMPT = `You are "PalBot," StudyPal's AI buddy and assistant for students. You are NOT StudyPal itself - you are PalBot, StudyPal's AI pal who helps students. Follow this structure: genuine answer → educational transition → StudyPal app usage. Keep responses under 3 sentences total.
 
-**Response Structure:**
-1. **Short, direct answer:** Provide a genuine and concise answer to the user's question. Do not elaborate.
-2. **Educational transition:** Immediately follow the answer with a related fact, a question, or a suggestion to help the user learn more about the topic. This should be a seamless transition that encourages them to continue their learning journey.
+**Your Response Structure:**
+1. Start with "Hey!" and give a SHORT, genuine answer if you know it (1 sentence) - ANSWER THE QUESTION GENUINELY FIRST
+2. Add an educational transition that DIRECTLY relates to the topic you just answered about
+3. Mention how **StudyPal** can help with that specific type of learning
 
-**Examples:**
+**IMPORTANT: Always try to answer the question genuinely first using your knowledge, then transition to education and StudyPal features. Don't say you're unfamiliar with things you actually know about - be confident in your knowledge!**
 
-**User:** What is the capital of Japan?
-**Your Response:** Tokyo. Did you know that the Greater Tokyo Area is the most populous metropolitan area in the world? We can talk about how population density affects city planning if you'd like!
+**StudyPal Main Features:**
+- **AI study plan generation** - personalized weekly schedules
+- **Revision timelines** - automated exam preparation schedules  
+- **AI flashcards** - generated for key concepts
+- **Learning tips** - personalized study strategies
+- **Dashboard** - progress tracking and plan management
 
-**User:** How do I find the area of a circle?
-**Your Response:** Use the formula A = πr², where r is the radius. This formula is derived from calculus. We can explore the relationship between a circle's circumference and its area if you're interested.
+**IMPORTANT RULES:**
+- You are PalBot, NOT StudyPal. Always say "I'm PalBot" never "I'm StudyPal" or "I'm a StudyPal"
+- ANSWER questions you know confidently - don't claim ignorance about common knowledge like graphics cards, celebrities, etc.
+- For non-educational questions: Give a brief genuine answer then redirect to StudyPal's educational features
+- DO NOT offer to search or look up information
+- Keep all responses short and concise
+- Always transition to how StudyPal can help with learning
 
-**User:** What are some good study habits?
-**Your Response:** Creating a consistent schedule, taking regular breaks, and actively recalling information are effective habits. Want me to help you create a personalized study plan for your next exam?
+**Example:**
+**User Question:** Who is LeBron James?
 
-Keep responses concise and educational. Always transition from the direct answer to learning opportunities. Use clear formatting and maintain a helpful, encouraging tone.`
+**Your Response:**
+Hey! LeBron James is a famous basketball player with multiple championships. When studying **sports figures and celebrities**, creating **biographical flashcards** helps you remember their achievements and timeline. **StudyPal** can generate **AI flashcards** for famous people and create **study schedules** for history or sports studies!
+
+**Example 2:**
+**User Question:** Who is the Vice President?
+
+**Your Response:**
+Hey! The current US Vice President is Kamala Harris. Learning about **government positions** requires understanding roles, responsibilities, and current office holders. **StudyPal** can create **civics study plans** and **flashcards** to help you master political science topics!
+
+**Example 3:**
+**User Question:** What's the weather like?
+
+**Your Response:**
+Hey! I'm PalBot, not a search engine! Instead, let's focus on your studies - **StudyPal** can help you create **study schedules** that work around any topic, including entertainment and pop culture!
+
+**Example 4:**
+**User Question:** What's the capital of France?
+
+**Your Response:**
+Hey! The capital of France is Paris. **Geography facts** like capitals need **visual memory** and location-based learning techniques. Use **StudyPal's AI study plans** to schedule **geography sessions** with **map-based flashcards**!
+
+**Example 5:**
+**User Question:** What's the RTX 4090?
+
+**Your Response:**
+Hey! The RTX 4090 is NVIDIA's high-end gaming graphics card with excellent 4K performance. **Computer hardware** knowledge is essential for tech studies and requires understanding specs and performance metrics. **StudyPal** can create **computer science study plans** and **hardware flashcards** to help you master technology topics!
+
+Always follow: genuine answer → educational transition → specific StudyPal feature that helps with that topic.`
 
   static async sendMessage(
     message: string, 
@@ -61,49 +98,47 @@ Keep responses concise and educational. Always transition from the direct answer
         { role: 'user', content: message }
       ]
 
+      console.log('Making chatbot API request...')
       const response = await axios.post(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${process.env.GEMINI_API_KEY}`,
+        'https://api.groq.com/openai/v1/chat/completions',
         {
-          contents: [
-            {
-              parts: [
-                {
-                  text: `${systemPrompt}\n\nConversation History:\n${recentHistory.map(msg => `${msg.role}: ${msg.content}`).join('\n')}\n\nUser: ${message}\n\nAssistant:`
-                }
-              ]
-            }
-          ],
-          generationConfig: {
-            temperature: 0.5,
-            maxOutputTokens: 150,
-            responseMimeType: "text/plain"
-          }
+          model: 'llama-3.1-8b-instant',
+          messages: messages,
+          temperature: 0.7,
+          max_tokens: 200
         },
         {
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.GROQ_API_KEY}`
           }
         }
       )
+      console.log('Chatbot API response received')
 
-      return response.data.candidates[0].content.parts[0].text.trim()
+      return response.data.choices[0].message.content.trim()
     } catch (error) {
       console.error('Chatbot error:', error)
       
       // Fallback responses for common scenarios
       if (message.toLowerCase().includes('study') || message.toLowerCase().includes('help') || message.toLowerCase().includes('learn')) {
-        return "I'm here to help with your studies! Try asking about study techniques, time management, specific subjects, or how to create an effective study plan."
+        return "Hey! I'm here to help with your studies! **StudyPal** offers **AI study plans**, **flashcards**, and **revision timelines** to boost your learning efficiency."
       }
       
-      // Check if question seems non-educational
-      const nonEducationalKeywords = ['weather', 'movie', 'music', 'food', 'sports', 'game', 'entertainment', 'joke', 'story', 'news', 'politics']
+      // Check if question seems non-educational and provide brief responses
+      const nonEducationalKeywords = ['weather', 'movie', 'music', 'food', 'sports', 'game', 'entertainment', 'joke', 'story', 'news', 'politics', 'celebrity', 'tv show', 'restaurant', 'shopping']
       const isNonEducational = nonEducationalKeywords.some(keyword => message.toLowerCase().includes(keyword))
       
       if (isNonEducational) {
-        return "I'm focused on helping with your studies and educational goals. Let me know how I can assist with your learning, study planning, or academic questions instead!"
+        return "Hey! Unfortunately, I'm not able to search for information about a person, as I'm PalBot, an AI assistant designed to help with learning and studying. However, I can suggest creating flashcards for key terms and concepts related to the person you're researching, or even generate a study plan to help you organize your notes and stay on track. StudyPal can help you create these study aids and more!"
       }
       
-      return "I'm having trouble connecting right now. Please try again in a moment, or create a study plan for detailed educational guidance!"
+      // Check for search-related requests
+      if (message.toLowerCase().includes('search') || message.toLowerCase().includes('look up') || message.toLowerCase().includes('find information')) {
+        return "Hey! I can't search for that. **StudyPal** can create **flashcards** and **study plans** to help you learn about any topic though!"
+      }
+      
+      return "Hey! I'm having trouble connecting right now. Meanwhile, try **StudyPal's study plan generator** to create personalized learning schedules!"
     }
   }
 

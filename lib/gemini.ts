@@ -256,33 +256,33 @@ Return only valid JSON without any additional text or formatting.
     // Wrap the API call in retry logic
     const response = await retryWithBackoff(async () => {
       return await axios.post(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${process.env.GEMINI_API_KEY}`,
+        'https://api.groq.com/openai/v1/chat/completions',
         {
-          contents: [
+          model: 'llama3-8b-8192',
+          messages: [
             {
-              parts: [
-                {
-                  text: `You are an expert educational consultant and study planner. Always respond with valid JSON only.\n\n${prompt}`
-                }
-              ]
+              role: 'system',
+              content: 'You are an expert educational consultant and study planner. Always respond with valid JSON only.'
+            },
+            {
+              role: 'user',
+              content: prompt
             }
           ],
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 4000,
-            responseMimeType: "application/json"
-          }
+          temperature: 0.7,
+          max_tokens: 4000
         },
         {
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.GROQ_API_KEY}`
           }
         }
       )
     }, 3, 2000) // 3 retries, starting with 2 second delay
 
-    console.log('Gemini API response received')
-    const content = response.data.candidates[0].content.parts[0].text
+    console.log('Groq API response received')
+    const content = response.data.choices[0].message.content
     console.log('Content length:', content.length)
     console.log('Raw content:', content.substring(0, 500) + '...')
     

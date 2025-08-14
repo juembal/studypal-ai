@@ -171,16 +171,13 @@ export default function Chatbot({ isOpen, onToggle }: ChatbotProps) {
                   <div className="flex items-start gap-2">
                     {message.role === 'assistant' && <Bot className="h-4 w-4 mt-0.5 flex-shrink-0" />}
                     {message.role === 'user' && <User className="h-4 w-4 mt-0.5 flex-shrink-0" />}
-                    <div 
-                      className="text-sm leading-relaxed break-words overflow-wrap-anywhere whitespace-pre-wrap" 
-                      dangerouslySetInnerHTML={{
-                        __html: message.content
-                          .replace(/\*\*(.*?)\*\*/g, `<strong class="${message.role === 'user' ? 'text-white font-semibold' : 'text-blue-600 font-semibold'}">$1</strong>`)
-                          .replace(/\*(.*?)\*/g, `<em class="${message.role === 'user' ? 'text-white/90' : 'text-gray-700'}">$1</em>`)
-                          .replace(/`(.*?)`/g, `<code class="${message.role === 'user' ? 'bg-white/20 text-white' : 'bg-gray-200 text-gray-800'} px-2 py-0.5 rounded text-xs font-mono">$1</code>`)
-                          .replace(/\n\n/g, '<br><br>')
-                          .replace(/\n/g, '<br>')
-                      }} 
+                    <div className="text-sm break-words overflow-wrap-anywhere whitespace-pre-wrap" 
+                         dangerouslySetInnerHTML={{
+                           __html: message.content
+                             .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                             .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                             .replace(/`(.*?)`/g, '<code class="bg-gray-200 px-1 rounded text-xs">$1</code>')
+                         }} 
                     />
                   </div>
                 </div>
