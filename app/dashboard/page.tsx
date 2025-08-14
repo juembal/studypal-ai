@@ -17,6 +17,7 @@ interface StoredStudyPlan {
   createdAt: string
   dailyHours: number
   studyLevel: string
+  fullPlan?: StudyPlan
 }
 
 export default function Dashboard() {
