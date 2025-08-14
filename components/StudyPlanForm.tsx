@@ -130,6 +130,7 @@ export default function StudyPlanForm({ onSubmit, isLoading }: StudyPlanFormProp
               <Label htmlFor="subjects" className="text-base font-semibold font-heading">Subjects</Label>
               <div className="space-y-2">
                 <Input
+                  id="subjects"
                   value={subjectsInput}
                   onChange={(e) => setSubjectsInput(e.target.value)}
                   placeholder="Enter subjects separated by commas (e.g., Math, Biology, History)"
@@ -229,6 +230,7 @@ export default function StudyPlanForm({ onSubmit, isLoading }: StudyPlanFormProp
                 </div>
               )}
               <Textarea
+                id="preferredTimes"
                 value={preferredTimes}
                 onChange={(e) => setPreferredTimes(e.target.value)}
                 placeholder="Add specific time slots if needed (e.g., Monday 9-11 AM, Wednesday 7-9 PM)"
@@ -266,6 +268,7 @@ export default function StudyPlanForm({ onSubmit, isLoading }: StudyPlanFormProp
               <div className="space-y-2">
                 <Label className="text-sm text-gray-600 font-heading">Or choose a custom date:</Label>
                 <Input
+                  id="targetDate"
                   type="date"
                   value={targetDate}
                   onChange={(e) => setTargetDate(e.target.value)}
@@ -280,6 +283,7 @@ export default function StudyPlanForm({ onSubmit, isLoading }: StudyPlanFormProp
             <div className="space-y-3">
               <Label htmlFor="studyLevel" className="text-base font-semibold font-heading">Study Level</Label>
               <select
+                id="studyLevel"
                 value={studyLevel}
                 onChange={(e) => setStudyLevel(e.target.value)}
                 className="flex h-12 w-full rounded-md border-2 border-input bg-background px-4 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-studypal-blue/50 focus-visible:ring-offset-2 transition-colors"
@@ -299,6 +303,7 @@ export default function StudyPlanForm({ onSubmit, isLoading }: StudyPlanFormProp
                 Study Schedule
               </Label>
               <select
+                id="includeWeekends"
                 value={includeWeekends}
                 onChange={(e) => setIncludeWeekends(e.target.value)}
                 className="flex h-12 w-full rounded-md border-2 border-input bg-background px-4 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-studypal-blue/50 focus-visible:ring-offset-2 transition-colors"
@@ -321,6 +326,7 @@ export default function StudyPlanForm({ onSubmit, isLoading }: StudyPlanFormProp
             <div className="space-y-3">
               <Label htmlFor="specificTopics" className="text-base font-semibold font-heading">Specific Topics to Study</Label>
               <Textarea
+                id="specificTopics"
                 value={specificTopics}
                 onChange={(e) => setSpecificTopics(e.target.value)}
                 placeholder="Enter specific topics you want to focus on, separated by commas (e.g., Quadratic Equations, Cell Division, World War II, Photosynthesis)"
@@ -348,6 +354,7 @@ export default function StudyPlanForm({ onSubmit, isLoading }: StudyPlanFormProp
             <div className="space-y-3">
               <Label htmlFor="weakAreas" className="text-base font-semibold font-heading">Weak Areas (Optional)</Label>
               <Textarea
+                id="weakAreas"
                 value={weakAreas}
                 onChange={(e) => setWeakAreas(e.target.value)}
                 placeholder="Enter general areas you struggle with, separated by commas (e.g., Problem Solving, Time Management, Memorization)"

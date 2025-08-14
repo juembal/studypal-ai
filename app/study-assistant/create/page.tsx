@@ -76,8 +76,21 @@ export default function CreateStudyPlan() {
       }
 
       const existingPlans = JSON.parse(localStorage.getItem('studypal_plans') || '[]')
-      const updatedPlans = [planToSave, ...existingPlans]
-      localStorage.setItem('studypal_plans', JSON.stringify(updatedPlans))
+      
+      // Check for duplicates based on subjects, target date, and creation time (within 5 seconds)
+      const isDuplicate = existingPlans.some((existingPlan: any) => {
+        const timeDiff = Math.abs(new Date(planToSave.createdAt).getTime() - new Date(existingPlan.createdAt).getTime())
+        return (
+          JSON.stringify(existingPlan.subjects.sort()) === JSON.stringify(planToSave.subjects.sort()) &&
+          existingPlan.targetDate === planToSave.targetDate &&
+          timeDiff < 5000 // Within 5 seconds
+        )
+      })
+      
+      if (!isDuplicate) {
+        const updatedPlans = [planToSave, ...existingPlans]
+        localStorage.setItem('studypal_plans', JSON.stringify(updatedPlans))
+      }
 
       setStudyPlan(plan)
       setShowPlanCard(true)
@@ -143,8 +156,21 @@ export default function CreateStudyPlan() {
       }
 
       const existingPlans = JSON.parse(localStorage.getItem('studypal_plans') || '[]')
-      const updatedPlans = [planToSave, ...existingPlans]
-      localStorage.setItem('studypal_plans', JSON.stringify(updatedPlans))
+      
+      // Check for duplicates
+      const isDuplicate = existingPlans.some((existingPlan: any) => {
+        const timeDiff = Math.abs(new Date(planToSave.createdAt).getTime() - new Date(existingPlan.createdAt).getTime())
+        return (
+          JSON.stringify(existingPlan.subjects.sort()) === JSON.stringify(planToSave.subjects.sort()) &&
+          existingPlan.targetDate === planToSave.targetDate &&
+          timeDiff < 5000
+        )
+      })
+      
+      if (!isDuplicate) {
+        const updatedPlans = [planToSave, ...existingPlans]
+        localStorage.setItem('studypal_plans', JSON.stringify(updatedPlans))
+      }
 
       setStudyPlan(plan)
       setShowPlanCard(true)
@@ -269,8 +295,21 @@ SIMPLE INSTRUCTION: Create a study schedule using ONLY the available time slots 
         }
 
         const existingPlans = JSON.parse(localStorage.getItem('studypal_plans') || '[]')
-        const updatedPlans = [planToSave, ...existingPlans]
-        localStorage.setItem('studypal_plans', JSON.stringify(updatedPlans))
+        
+        // Check for duplicates
+        const isDuplicate = existingPlans.some((existingPlan: any) => {
+          const timeDiff = Math.abs(new Date(planToSave.createdAt).getTime() - new Date(existingPlan.createdAt).getTime())
+          return (
+            JSON.stringify(existingPlan.subjects.sort()) === JSON.stringify(planToSave.subjects.sort()) &&
+            existingPlan.targetDate === planToSave.targetDate &&
+            timeDiff < 5000
+          )
+        })
+        
+        if (!isDuplicate) {
+          const updatedPlans = [planToSave, ...existingPlans]
+          localStorage.setItem('studypal_plans', JSON.stringify(updatedPlans))
+        }
 
         setStudyPlan(manualPlan)
         setShowPlanCard(true)
@@ -291,8 +330,21 @@ SIMPLE INSTRUCTION: Create a study schedule using ONLY the available time slots 
       }
 
       const existingPlans = JSON.parse(localStorage.getItem('studypal_plans') || '[]')
-      const updatedPlans = [planToSave, ...existingPlans]
-      localStorage.setItem('studypal_plans', JSON.stringify(updatedPlans))
+      
+      // Check for duplicates
+      const isDuplicate = existingPlans.some((existingPlan: any) => {
+        const timeDiff = Math.abs(new Date(planToSave.createdAt).getTime() - new Date(existingPlan.createdAt).getTime())
+        return (
+          JSON.stringify(existingPlan.subjects.sort()) === JSON.stringify(planToSave.subjects.sort()) &&
+          existingPlan.targetDate === planToSave.targetDate &&
+          timeDiff < 5000
+        )
+      })
+      
+      if (!isDuplicate) {
+        const updatedPlans = [planToSave, ...existingPlans]
+        localStorage.setItem('studypal_plans', JSON.stringify(updatedPlans))
+      }
 
       setStudyPlan(plan)
       setShowPlanCard(true)
@@ -503,11 +555,25 @@ SIMPLE INSTRUCTION: Create a study schedule using ONLY the available time slots 
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div>
                       <span className="text-gray-600">Subjects:</span>
-                      <span className="ml-2 font-medium text-base">{studyPlan.weeklySchedule ? [...new Set(Object.values(studyPlan.weeklySchedule).flatMap(day => day.subjects?.map(s => s.subject) || []))].length : 0}</span>
+                      <span className="ml-2 font-medium text-base">
+                        {studyPlan.weeklySchedule ? 
+                          [...new Set(Object.values(studyPlan.weeklySchedule).flatMap(day => day.subjects?.map(s => s.subject) || []))].length : 
+                          studyPlan.sessions ? 
+                            [...new Set(studyPlan.sessions.map(s => s.subject))].length :
+                            studyPlan.subjects?.length || 0
+                        }
+                      </span>
                     </div>
                     <div>
                       <span className="text-gray-600">Weekly Hours:</span>
-                      <span className="ml-2 font-medium text-base">{studyPlan.weeklySchedule ? Object.values(studyPlan.weeklySchedule).reduce((acc, day) => acc + (day.totalHours || 0), 0) : 0}h</span>
+                      <span className="ml-2 font-medium text-base">
+                        {studyPlan.weeklySchedule ? 
+                          Object.values(studyPlan.weeklySchedule).reduce((acc, day) => acc + (day.totalHours || 0), 0) : 
+                          studyPlan.sessions ? 
+                            studyPlan.sessions.reduce((acc, session) => acc + (session.duration || 0), 0) :
+                            studyPlan.totalHours || 0
+                        }h
+                      </span>
                     </div>
                   </div>
                 </div>

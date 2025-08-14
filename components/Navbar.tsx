@@ -124,13 +124,13 @@ export default function Navbar() {
                 href={item.href}
                 className={cn(
                   'px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 relative overflow-hidden group',
-                  pathname === item.href
+                  (pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href)))
                     ? 'text-studypal-blue bg-studypal-blue/10'
                     : 'text-studypal-gray-900 hover:text-studypal-blue hover:bg-studypal-blue/5'
                 )}
               >
                 <span className="relative z-10">{item.name}</span>
-                {pathname === item.href && (
+                {(pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href))) && (
                   <div className="absolute inset-0 bg-gradient-to-r from-studypal-blue/20 to-studypal-cyan/20 opacity-50"></div>
                 )}
               </Link>
@@ -165,7 +165,7 @@ export default function Navbar() {
                 href={item.href}
                 className={cn(
                   'block px-4 py-3 text-base font-medium rounded-xl transition-all duration-300',
-                  pathname === item.href
+                  (pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href)))
                     ? 'text-studypal-blue bg-studypal-blue/10'
                     : 'text-studypal-gray-900 hover:text-studypal-blue hover:bg-studypal-blue/5'
                 )}

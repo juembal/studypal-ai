@@ -8,6 +8,7 @@ export async function generateStudyPlan(
   try {
     console.log('Making request to Groq API...')
     console.log('API Key exists:', !!process.env.GROQ_API_KEY)
+    console.log('API Key preview:', process.env.GROQ_API_KEY?.substring(0, 10) + '...')
 
     if (!process.env.GROQ_API_KEY) {
       throw new Error('GROQ_API_KEY is not configured. Please add it to your .env.local file.')
@@ -18,7 +19,7 @@ export async function generateStudyPlan(
     const response = await axios.post(
       'https://api.groq.com/openai/v1/chat/completions',
       {
-        model: 'mixtral-8x7b-32768',
+        model: 'llama-3.1-8b-instant',
         messages: [
           {
             role: 'system',
@@ -41,19 +42,26 @@ export async function generateStudyPlan(
     )
 
     console.log('Groq API response received')
+    console.log('Response status:', response.status)
+    console.log('Response data:', response.data)
     
     const content = response.data.choices[0].message.content.trim()
+    console.log('Raw content from API:', content)
     
     // Extract JSON from the response
     let jsonMatch = content.match(/\{[\s\S]*\}/)
+    console.log('JSON match found:', !!jsonMatch)
     if (!jsonMatch) {
+      console.error('No valid JSON found in response. Content was:', content)
       throw new Error('No valid JSON found in response')
     }
 
+    console.log('Extracted JSON:', jsonMatch[0])
     const studyPlanData = JSON.parse(jsonMatch[0])
+    console.log('Parsed study plan data:', studyPlanData)
     
     // Ensure the response has the correct structure
-    const studyPlan: StudyPlan = {
+    const studyPlan: any = {
       id: `plan_${Date.now()}`,
       name: studyPlanData.name || `${request.subjects.join(', ')} Study Plan`,
       subjects: request.subjects,
@@ -65,6 +73,12 @@ export async function generateStudyPlan(
       goals: request.goals,
       sessions: studyPlanData.sessions || [],
       flashcards: studyPlanData.flashcards || [],
+      // Include any additional data from the AI response
+      weeklySchedule: studyPlanData.weeklySchedule,
+      revisionSchedule: studyPlanData.revisionSchedule || [],
+      learningTips: studyPlanData.learningTips || [],
+      examStrategy: studyPlanData.examStrategy || [],
+      onlineResources: studyPlanData.onlineResources || [],
       progress: {
         completedSessions: 0,
         totalSessions: studyPlanData.sessions?.length || 0,
@@ -76,6 +90,7 @@ export async function generateStudyPlan(
       updatedAt: new Date().toISOString()
     }
 
+    console.log('Final study plan structure:', studyPlan)
     return studyPlan
 
   } catch (error: any) {
@@ -115,15 +130,16 @@ function buildStudyPlanPrompt(request: StudyPlanRequest, existingScheduleContext
 **Required JSON Structure:**
 {
   "name": "Study Plan Name",
-  "totalHours": number,
+  "totalHours": ${request.dailyHours * (request.includeWeekends === 'all' ? 7 : 5)},
   "sessions": [
     {
       "id": "session_1",
       "day": "Monday",
       "date": "YYYY-MM-DD",
+      "timeSlot": "9:00 AM - 11:00 AM",
       "subject": "Subject Name",
       "topic": "Specific Topic",
-      "duration": number_in_hours,
+      "duration": 2,
       "type": "lecture|practice|review|assessment",
       "materials": ["Material 1", "Material 2"],
       "notes": "Study notes or tips",
@@ -139,17 +155,90 @@ function buildStudyPlanPrompt(request: StudyPlanRequest, existingScheduleContext
       "difficulty": "easy|medium|hard",
       "tags": ["tag1", "tag2"]
     }
+  ],
+  "learningTips": [
+    "Use active recall techniques",
+    "Take regular breaks every 25-30 minutes",
+    "Review material within 24 hours",
+    "Practice spaced repetition"
+  ],
+  "examStrategy": [
+    "Create a revision timeline",
+    "Focus on weak areas first",
+    "Use past papers for practice",
+    "Get adequate sleep before exams"
+  ],
+  "onlineResources": [
+    {
+      "title": "Khan Academy: Mathematics",
+      "url": "https://www.khanacademy.org/math",
+      "type": "video",
+      "subject": "Mathematics",
+      "topic": "Algebra and Calculus",
+      "description": "Free comprehensive math lessons from basic to advanced",
+      "difficulty": "beginner",
+      "estimatedTime": "30-60 minutes",
+      "isFree": true
+    },
+    {
+      "title": "Coursera: Learning How to Learn",
+      "url": "https://www.coursera.org/learn/learning-how-to-learn",
+      "type": "course",
+      "subject": "Study Skills",
+      "topic": "Effective Learning Techniques",
+      "description": "Popular course on learning techniques and memory",
+      "difficulty": "beginner",
+      "estimatedTime": "4 weeks",
+      "isFree": true
+    },
+    {
+      "title": "MIT OpenCourseWare",
+      "url": "https://ocw.mit.edu",
+      "type": "course",
+      "subject": "Various",
+      "topic": "University-level courses",
+      "description": "Free access to MIT course materials",
+      "difficulty": "advanced",
+      "estimatedTime": "Varies",
+      "isFree": true
+    }
   ]
 }
 
 **Instructions:**
 1. Create a realistic study schedule from today until the target date
-2. Distribute ${request.dailyHours} hours per day across the subjects
-3. Include variety: lectures, practice, review, and assessments
-4. Generate 10-15 relevant flashcards covering key concepts
-5. Ensure progression from basic to advanced topics
-6. Include specific materials and resources
-7. Add helpful study notes and tips for each session
+2. Distribute EXACTLY ${request.dailyHours} hours per day across the subjects
+3. ${request.includeWeekends === 'weekdays' ? 'Schedule ONLY Monday through Friday (5 days per week)' : request.includeWeekends === 'all' ? 'Include all 7 days of the week' : 'Use 5-6 days per week as needed'}
+4. Each individual session should be 1-3 hours maximum
+5. Total daily hours should NOT exceed ${request.dailyHours} hours
+6. Generate specific time slots (e.g., "9:00 AM - 11:00 AM", "2:00 PM - 4:00 PM") for each session
+7. ${request.preferredTimes ? `Prefer these times: ${request.preferredTimes}` : 'Use common study hours like 9 AM-12 PM, 2 PM-5 PM, 7 PM-9 PM'}
+8. Include variety: lectures, practice, review, and assessments
+9. Generate 10-15 relevant flashcards covering key concepts
+10. Provide 5-8 practical learning tips for effective studying
+11. Include 4-6 exam strategy recommendations
+12. Add 3-5 online resources (Khan Academy, Coursera, YouTube channels, etc.) for each subject
+14. Ensure progression from basic to advanced topics
+15. Include specific materials and resources
+16. Add helpful study notes and tips for each session
+
+MANDATORY: Your response MUST include ALL sections: sessions, flashcards, learningTips, examStrategy, and onlineResources.
+
+SPECIFIC REQUIREMENTS:
+- learningTips: Provide practical, actionable study advice (5-8 tips)
+- examStrategy: Include test-taking strategies and preparation methods (4-6 strategies)
+- onlineResources: Use ONLY these verified URLs based on subjects:
+  * Mathematics: https://www.khanacademy.org/math, https://www.coursera.org/browse/math-and-logic
+  * Science/Physics: https://www.khanacademy.org/science/physics, https://ocw.mit.edu/courses/physics/
+  * Chemistry: https://www.khanacademy.org/science/chemistry, https://ocw.mit.edu/courses/chemistry/
+  * Biology: https://www.khanacademy.org/science/biology, https://www.coursera.org/browse/life-sciences
+  * History: https://www.khanacademy.org/humanities/world-history, https://www.coursera.org/browse/arts-and-humanities/history
+  * English/Literature: https://www.khanacademy.org/humanities/grammar, https://www.coursera.org/browse/language-learning
+  * Computer Science: https://www.khanacademy.org/computing, https://ocw.mit.edu/courses/electrical-engineering-and-computer-science/
+  * General Study Skills: https://www.coursera.org/learn/learning-how-to-learn, https://ocw.mit.edu
+- flashcards: Cover key concepts from the specified topics (10-15 cards)
+
+IMPORTANT: Keep total weekly hours reasonable - aim for ${request.dailyHours * (request.includeWeekends === 'all' ? 7 : 5)} hours per week maximum.
 
 ${contextInfo}
 

@@ -10,6 +10,11 @@ export interface StudyPlanRequest {
   currentKnowledge?: string
   learningStyle?: 'visual' | 'auditory' | 'kinesthetic' | 'reading'
   difficulty?: 'beginner' | 'intermediate' | 'advanced'
+  // Additional fields from the form
+  weakAreas?: string[]
+  preferredTimes?: string
+  specificTopics?: string[]
+  includeWeekends?: string
 }
 
 export interface StudySession {

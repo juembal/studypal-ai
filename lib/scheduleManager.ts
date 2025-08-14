@@ -19,6 +19,11 @@ export interface ScheduleConflict {
 
 export class ScheduleManager {
   static parseTimeSlot(timeSlot: string): { start: number, end: number } | null {
+    // Check if timeSlot is valid
+    if (!timeSlot || typeof timeSlot !== 'string') {
+      return null
+    }
+    
     // Parse time slots like "9:00 AM - 11:00 AM" or "2:00-4:00 PM"
     const timeRegex = /(\d{1,2}):?(\d{0,2})\s*(AM|PM)?\s*[-–]\s*(\d{1,2}):?(\d{0,2})\s*(AM|PM)?/i
     const match = timeSlot.match(timeRegex)
@@ -45,21 +50,30 @@ export class ScheduleManager {
     return { start: startMinutes, end: endMinutes }
   }
 
-  static extractTimeSlots(studyPlan: StudyPlan, planId: string, planName: string): TimeSlot[] {
+  static extractTimeSlots(studyPlan: any, planId: string, planName: string): TimeSlot[] {
     const timeSlots: TimeSlot[] = []
     
-    if (!studyPlan.weeklySchedule) return timeSlots
+    // Handle both weeklySchedule and sessions structures
+    if (!studyPlan) return timeSlots
     
-    Object.entries(studyPlan.weeklySchedule).forEach(([day, schedule]) => {
+    if (studyPlan.weeklySchedule && typeof studyPlan.weeklySchedule === 'object') {
+      Object.entries(studyPlan.weeklySchedule).forEach(([day, schedule]: [string, any]) => {
       if (schedule.subjects && Array.isArray(schedule.subjects)) {
         schedule.subjects.forEach(subject => {
+          // Check if subject exists and has a valid timeSlot
+          if (!subject || !subject.timeSlot || typeof subject.timeSlot !== 'string') {
+            console.log('Skipping invalid subject:', subject)
+            return // Skip this subject if no valid timeSlot
+          }
+          
           const parsedTime = this.parseTimeSlot(subject.timeSlot)
-          if (parsedTime) {
+          if (parsedTime && subject.timeSlot.includes(' - ')) {
+            const timeParts = subject.timeSlot.split(' - ')
             timeSlots.push({
               day,
-              startTime: subject.timeSlot.split(' - ')[0] || subject.timeSlot.split('–')[0],
-              endTime: subject.timeSlot.split(' - ')[1] || subject.timeSlot.split('–')[1],
-              subject: subject.subject,
+              startTime: timeParts[0] || '',
+              endTime: timeParts[1] || '',
+              subject: subject.subject || subject.name || 'Unknown Subject',
               planId,
               planName
             })
@@ -67,6 +81,21 @@ export class ScheduleManager {
         })
       }
     })
+    } else if (studyPlan.sessions && Array.isArray(studyPlan.sessions)) {
+      // Handle sessions structure
+      studyPlan.sessions.forEach((session: any) => {
+        if (session && session.day && session.date) {
+          timeSlots.push({
+            day: session.day,
+            startTime: session.date || 'TBD',
+            endTime: session.date || 'TBD',
+            subject: session.subject || session.topic || 'Unknown Subject',
+            planId,
+            planName
+          })
+        }
+      })
+    }
     
     return timeSlots
   }
@@ -77,9 +106,14 @@ export class ScheduleManager {
       const allTimeSlots: TimeSlot[] = []
       
       savedPlans.forEach((plan: any) => {
-        if (plan.fullPlan && plan.status !== 'completed') {
-          const timeSlots = this.extractTimeSlots(plan.fullPlan, plan.id, plan.name)
-          allTimeSlots.push(...timeSlots)
+        try {
+          if (plan.fullPlan && plan.status !== 'completed') {
+            const timeSlots = this.extractTimeSlots(plan.fullPlan, plan.id || 'unknown', plan.name || 'Unknown Plan')
+            allTimeSlots.push(...timeSlots)
+          }
+        } catch (planError) {
+          console.warn('Error processing plan:', plan.id || 'unknown', planError)
+          // Continue with other plans instead of failing completely
         }
       })
       

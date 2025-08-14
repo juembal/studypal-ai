@@ -3,7 +3,9 @@ import { generateStudyPlan, StudyPlanRequest } from '@/lib/groq'
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('API route called - generate-plan')
     const body: StudyPlanRequest = await request.json()
+    console.log('Request body received:', body)
     
     // Validate required fields
     if (!body.subjects || body.subjects.length === 0) {
