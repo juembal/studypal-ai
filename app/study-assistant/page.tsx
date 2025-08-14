@@ -244,7 +244,7 @@ export default function StudyAssistant() {
                     className="glass-effect border-0 hover-lift hover-glow transition-all duration-300 animate-scale-in group cursor-pointer"
                     onClick={(e) => {
                       // Fallback click handler for the entire card
-                      if (e.target === e.currentTarget || !e.target.closest('.dropdown-menu, .dropdown-trigger')) {
+                      if (e.target === e.currentTarget || !(e.target as Element).closest('.dropdown-menu, .dropdown-trigger')) {
                         e.preventDefault()
                         e.stopPropagation()
                         handleViewPlan(plan.id)
