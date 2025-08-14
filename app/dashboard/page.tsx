@@ -57,7 +57,7 @@ export default function Dashboard() {
       return daysUntil > 0
     }).length
     
-    const totalSubjects = [...new Set(studyPlans.flatMap(plan => plan.subjects))].length
+    const totalSubjects = Array.from(new Set(studyPlans.flatMap(plan => plan.subjects))).length
     const totalHours = studyPlans.reduce((sum, plan) => sum + plan.dailyHours, 0)
 
     return {
