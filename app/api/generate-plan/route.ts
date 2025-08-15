@@ -3,7 +3,7 @@ import { generateStudyPlan } from '@/lib/groq'
 import { StudyPlanRequest } from '@/lib/types'
 
 export async function POST(request: NextRequest) {
-  let body: StudyPlanRequest
+  let body: StudyPlanRequest | null = null
   
   try {
     console.log('API route called - generate-plan')
@@ -58,6 +58,11 @@ export async function POST(request: NextRequest) {
     console.log('Unexpected error, attempting emergency fallback...')
     
     try {
+      // Only attempt emergency fallback if we have the request body
+      if (!body) {
+        throw new Error('Request body not available for emergency fallback')
+      }
+      
       // Import the fallback function directly
       const { generateStudyPlan } = await import('@/lib/groq')
       const emergencyPlan = await generateStudyPlan(body, (body as any).existingScheduleContext)
