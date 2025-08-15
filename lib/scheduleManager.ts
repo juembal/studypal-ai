@@ -449,7 +449,7 @@ export class ScheduleManager {
     console.log('Total hours scheduled:', totalHoursScheduled)
     
     // Generate sessions array from weekly schedule
-    const sessions = []
+    const sessions: any[] = []
     let sessionId = 1
     const startDate = new Date()
     
