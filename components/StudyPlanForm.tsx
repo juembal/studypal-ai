@@ -18,7 +18,6 @@ interface StudyPlanFormProps {
 export default function StudyPlanForm({ onSubmit, isLoading }: StudyPlanFormProps) {
   const [subjectsInput, setSubjectsInput] = useState<string>('')
   const [specificTopics, setSpecificTopics] = useState<string>('')
-  const [weakAreas, setWeakAreas] = useState<string>('')
   const [preferredTimes, setPreferredTimes] = useState<string>('')
   const [studyTimePreference, setStudyTimePreference] = useState<string>('')
   const [dailyHours, setDailyHours] = useState<number[]>([4])
@@ -68,18 +67,91 @@ export default function StudyPlanForm({ onSubmit, isLoading }: StudyPlanFormProp
     setter(prev => prev.map((item, i) => i === index ? value : item))
   }
 
+  // Auto-correct and format text
+  const autoCorrectText = (text: string): string => {
+    if (!text) return text
+    
+    // Common subject corrections
+    const subjectCorrections: { [key: string]: string } = {
+      'math': 'Mathematics',
+      'maths': 'Mathematics',
+      'mathematic': 'Mathematics',
+      'mathematics': 'Mathematics',
+      'bio': 'Biology',
+      'biology': 'Biology',
+      'chem': 'Chemistry',
+      'chemistry': 'Chemistry',
+      'phys': 'Physics',
+      'physics': 'Physics',
+      'hist': 'History',
+      'history': 'History',
+      'eng': 'English',
+      'english': 'English',
+      'lit': 'Literature',
+      'literature': 'Literature',
+      'sci': 'Science',
+      'science': 'Science',
+      'comp sci': 'Computer Science',
+      'computer science': 'Computer Science',
+      'cs': 'Computer Science',
+      'programming': 'Programming',
+      'coding': 'Programming',
+      'econ': 'Economics',
+      'economics': 'Economics',
+      'psych': 'Psychology',
+      'psychology': 'Psychology',
+      'geo': 'Geography',
+      'geography': 'Geography',
+      'art': 'Art',
+      'music': 'Music',
+      'pe': 'Physical Education',
+      'physical education': 'Physical Education',
+      'spanish': 'Spanish',
+      'french': 'French',
+      'german': 'German',
+      'chinese': 'Chinese',
+      'japanese': 'Japanese'
+    }
+    
+    // Clean and normalize the text
+    let corrected = text.toLowerCase().trim()
+    
+    // Check for exact matches in corrections
+    if (subjectCorrections[corrected]) {
+      return subjectCorrections[corrected]
+    }
+    
+    // Handle partial matches and common typos
+    for (const [typo, correction] of Object.entries(subjectCorrections)) {
+      if (corrected.includes(typo) || typo.includes(corrected)) {
+        return correction
+      }
+    }
+    
+    // If no specific correction found, just capitalize properly
+    return text
+      .toLowerCase()
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ')
+      .trim()
+  }
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     
-    // Parse subjects from comma-separated input
+    // Parse and auto-correct subjects from comma-separated input
     const subjects = subjectsInput
       .split(',')
-      .map(s => s.trim())
+      .map(s => autoCorrectText(s.trim()))
       .filter(s => s !== '')
     
-    const filteredWeakAreas = weakAreas ? weakAreas.split(',').map(s => s.trim()).filter(s => s !== '') : []
+    console.log('Form Debug:')
+    console.log('Raw subjectsInput:', subjectsInput)
+    console.log('Auto-corrected subjects:', subjects)
+    
     const filteredPreferredTimes = preferredTimes ? preferredTimes.split(',').map(s => s.trim()).filter(s => s !== '') : []
-    const filteredSpecificTopics = specificTopics ? specificTopics.split(',').map(s => s.trim()).filter(s => s !== '') : []
+    const filteredSpecificTopics = specificTopics ? specificTopics.split(',').map(s => autoCorrectText(s.trim())).filter(s => s !== '') : []
     
     if (subjects.length === 0) {
       // This validation is now handled by the disabled button state
@@ -95,7 +167,6 @@ export default function StudyPlanForm({ onSubmit, isLoading }: StudyPlanFormProp
       subjects: subjects,
       dailyHours: dailyHours[0],
       targetDate,
-      weakAreas: filteredWeakAreas,
       studyLevel,
       preferredTimes: studyTimePreference ? 
         (preferredTimes.trim() ? `${studyTimePreference}: ${preferredTimes}` : studyTimePreference) 
@@ -144,13 +215,24 @@ export default function StudyPlanForm({ onSubmit, isLoading }: StudyPlanFormProp
                   <div className="flex flex-wrap gap-2 mt-2">
                     {subjectsInput.split(',').map((subject, index) => {
                       const trimmed = subject.trim()
+                      const corrected = autoCorrectText(trimmed)
+                      const wasChanged = trimmed.toLowerCase() !== corrected.toLowerCase()
                       return trimmed ? (
-                        <span key={index} className="px-3 py-1.5 bg-gradient-to-r from-studypal-blue/10 to-studypal-cyan/10 text-studypal-blue border border-studypal-blue/20 rounded-full text-sm font-medium">
-                          {trimmed}
+                        <span key={index} className={`px-3 py-1.5 bg-gradient-to-r ${wasChanged ? 'from-studypal-green/10 to-studypal-green/15 text-studypal-green border-studypal-green/20' : 'from-studypal-blue/10 to-studypal-cyan/10 text-studypal-blue border-studypal-blue/20'} border rounded-full text-sm font-medium`}>
+                          {corrected}
+                          {wasChanged && <span className="ml-1 text-xs opacity-75">✓</span>}
                         </span>
                       ) : null
                     })}
                   </div>
+                )}
+                {subjectsInput && subjectsInput.split(',').some(s => {
+                  const trimmed = s.trim()
+                  return trimmed && autoCorrectText(trimmed).toLowerCase() !== trimmed.toLowerCase()
+                }) && (
+                  <p className="text-xs text-studypal-green mt-1">
+                    ✓ Auto-corrected spelling and formatting
+                  </p>
                 )}
               </div>
             </div>
@@ -340,30 +422,27 @@ export default function StudyPlanForm({ onSubmit, isLoading }: StudyPlanFormProp
                 <div className="flex flex-wrap gap-2 mt-2">
                   {specificTopics.split(',').map((topic, index) => {
                     const trimmed = topic.trim()
+                    const corrected = autoCorrectText(trimmed)
+                    const wasChanged = trimmed.toLowerCase() !== corrected.toLowerCase()
                     return trimmed ? (
-                      <span key={index} className="px-3 py-1.5 bg-gradient-to-r from-studypal-green/10 to-studypal-green/15 text-studypal-green border border-studypal-green/20 rounded-full text-sm font-medium">
-                        {trimmed}
+                      <span key={index} className={`px-3 py-1.5 bg-gradient-to-r ${wasChanged ? 'from-studypal-amber/10 to-studypal-amber/15 text-studypal-amber border-studypal-amber/20' : 'from-studypal-green/10 to-studypal-green/15 text-studypal-green border-studypal-green/20'} border rounded-full text-sm font-medium`}>
+                        {corrected}
+                        {wasChanged && <span className="ml-1 text-xs opacity-75">✓</span>}
                       </span>
                     ) : null
                   })}
                 </div>
               )}
+              {specificTopics && specificTopics.split(',').some(s => {
+                const trimmed = s.trim()
+                return trimmed && autoCorrectText(trimmed).toLowerCase() !== trimmed.toLowerCase()
+              }) && (
+                <p className="text-xs text-studypal-green mt-1">
+                  ✓ Auto-corrected spelling and formatting
+                </p>
+              )}
             </div>
 
-            {/* Weak Areas */}
-            <div className="space-y-3">
-              <Label htmlFor="weakAreas" className="text-base font-semibold font-heading">Weak Areas (Optional)</Label>
-              <Textarea
-                id="weakAreas"
-                value={weakAreas}
-                onChange={(e) => setWeakAreas(e.target.value)}
-                placeholder="Enter general areas you struggle with, separated by commas (e.g., Problem Solving, Time Management, Memorization)"
-                className="min-h-[80px] px-4 py-3 border-2 focus:border-studypal-blue/50 transition-colors text-base"
-              />
-              <p className="text-sm text-gray-500">
-                💡 Tip: Focus on study skills or general challenges rather than specific topics
-              </p>
-            </div>
 
 
             {/* Generate Button */}

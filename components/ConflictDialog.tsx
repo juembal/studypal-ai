@@ -28,6 +28,8 @@ export default function ConflictDialog({
   onOverwrite, 
   onCancel 
 }: ConflictDialogProps) {
+  console.log('ConflictDialog render:', { isOpen, conflicts: conflicts.length })
+  
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onCancel()}>
       <DialogContent className="sm:max-w-2xl">
@@ -37,7 +39,8 @@ export default function ConflictDialog({
             Schedule Conflicts Detected
           </DialogTitle>
           <DialogDescription>
-            Your new study plan conflicts with existing schedules. Choose how to proceed.
+            Your new study plan has {conflicts.length} schedule conflict{conflicts.length > 1 ? 's' : ''} with existing plans. 
+            Don't worry - we can fix this! Choose how you'd like to proceed:
           </DialogDescription>
         </DialogHeader>
         
@@ -70,35 +73,44 @@ export default function ConflictDialog({
           </div>
           
           <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <h4 className="font-medium text-blue-800 mb-2">What would you like to do?</h4>
-            <div className="space-y-2 text-sm text-blue-700">
+            <h4 className="font-medium text-blue-800 mb-3">What would you like to do?</h4>
+            <div className="space-y-3 text-sm text-blue-700">
               <div className="flex items-start gap-2">
-                <span className="font-medium">Regenerate:</span>
-                <span>Create a new plan that avoids these time conflicts</span>
+                <span className="font-medium min-w-fit">🔄 Regenerate (Recommended):</span>
+                <span>Automatically create a new conflict-free plan using available time slots. This keeps all your existing plans intact and finds the best available times for your new subjects.</span>
               </div>
               <div className="flex items-start gap-2">
-                <span className="font-medium">Overwrite:</span>
-                <span>Replace existing plans and use the new schedule</span>
+                <span className="font-medium min-w-fit">⚠️ Overwrite:</span>
+                <span>Remove the conflicting study plans and save this new plan. <strong>Warning:</strong> This will permanently delete the existing plans that have conflicts.</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="font-medium min-w-fit">❌ Cancel:</span>
+                <span>Go back to modify your study plan requirements (change subjects, daily hours, or target date)</span>
               </div>
             </div>
           </div>
         </div>
 
-        <DialogFooter className="flex gap-2">
-          <Button onClick={onCancel} className="bg-studypal-amber hover:bg-studypal-amber/90 text-studypal-gray-900 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
-            Cancel
+        <DialogFooter className="flex flex-col sm:flex-row gap-3 sm:gap-2">
+          <Button 
+            onClick={onCancel} 
+            variant="outline"
+            className="order-3 sm:order-1 border-gray-300 hover:bg-gray-50"
+          >
+            ❌ Cancel
           </Button>
           <Button 
             onClick={onRegenerate}
-            className="bg-blue-600 hover:bg-blue-700"
+            className="order-1 sm:order-2 bg-blue-600 hover:bg-blue-700 text-white font-medium"
           >
-            Regenerate (Avoid Conflicts)
+            🔄 Regenerate (Recommended)
           </Button>
           <Button 
             onClick={onOverwrite}
-            className="bg-orange-600 hover:bg-orange-700"
+            variant="destructive"
+            className="order-2 sm:order-3 bg-orange-600 hover:bg-orange-700 font-medium"
           >
-            Overwrite Existing Plans
+            ⚠️ Overwrite Existing Plans
           </Button>
         </DialogFooter>
       </DialogContent>

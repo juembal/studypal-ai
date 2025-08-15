@@ -137,7 +137,6 @@ Generates a personalized study plan based on user input.
   subjects: string[]
   dailyHours: number
   targetDate: string
-  weakAreas: string[]
   studyLevel: string
   preferredTimes: string[]
 }

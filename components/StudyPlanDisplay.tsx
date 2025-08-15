@@ -507,7 +507,7 @@ ${studyPlan.flashcards ? studyPlan.flashcards.map((card, index) =>
                                   <div className="flex items-center gap-1 text-sm text-gray-500 mb-1">
                                     <Clock className="h-3 w-3" />
                                     <span className={isCompleted ? 'line-through' : ''}>
-                                      {session.date || 'Time TBD'}
+                                      {session.timeSlot || session.date || 'Time TBD'}
                                     </span>
                                   </div>
                                   <div className={`text-sm font-medium ${isCompleted ? 'line-through text-gray-400' : 'text-blue-600'}`}>

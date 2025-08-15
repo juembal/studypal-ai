@@ -11,7 +11,6 @@ export interface StudyPlanRequest {
   learningStyle?: 'visual' | 'auditory' | 'kinesthetic' | 'reading'
   difficulty?: 'beginner' | 'intermediate' | 'advanced'
   // Additional fields from the form
-  weakAreas?: string[]
   preferredTimes?: string
   specificTopics?: string[]
   includeWeekends?: string

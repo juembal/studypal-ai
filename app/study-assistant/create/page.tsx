@@ -18,21 +18,96 @@ export default function CreateStudyPlan() {
   const [studyPlan, setStudyPlan] = useState<StudyPlan | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [progressMessage, setProgressMessage] = useState<string | null>(null)
+  const [isRetrying, setIsRetrying] = useState(false)
   const [showPlanCard, setShowPlanCard] = useState(false)
   const [isViewingPlan, setIsViewingPlan] = useState(false)
   const [conflictDialog, setConflictDialog] = useState<{
     isOpen: boolean
     conflicts: ScheduleConflict[]
     formData?: StudyPlanRequest
+    generatedPlan?: StudyPlan
   }>({
     isOpen: false,
     conflicts: [],
-    formData: undefined
+    formData: undefined,
+    generatedPlan: undefined
   })
 
+  // Function to handle streaming study plan generation
+  const generateStudyPlanWithProgress = async (requestData: any): Promise<any> => {
+    return new Promise((resolve, reject) => {
+      const eventSource = new EventSource('/api/generate-plan-stream')
+      
+      // Send the request data via POST (we need to modify this approach)
+      fetch('/api/generate-plan-stream', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData),
+      }).then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+        
+        const reader = response.body?.getReader()
+        const decoder = new TextDecoder()
+        
+        const readStream = async () => {
+          try {
+            while (true) {
+              const { done, value } = await reader!.read()
+              if (done) break
+              
+              const chunk = decoder.decode(value)
+              const lines = chunk.split('\n')
+              
+              for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                  try {
+                    const data = JSON.parse(line.slice(6))
+                    
+                    if (data.type === 'progress') {
+                      setProgressMessage(data.message) // Show progress message
+                      setIsRetrying(true) // Show retry state
+                    } else if (data.type === 'success') {
+                      setProgressMessage(null) // Clear progress message
+                      setIsRetrying(false) // Clear retry state
+                      resolve(data.data) // Return the study plan
+                      return
+                    } else if (data.type === 'error') {
+                      setProgressMessage(null) // Clear progress message
+                      setIsRetrying(false) // Clear retry state
+                      reject(new Error(data.message))
+                      return
+                    }
+                  } catch (parseError) {
+                    console.warn('Failed to parse SSE data:', line)
+                  }
+                }
+              }
+            }
+          } catch (error) {
+            reject(error)
+          }
+        }
+        
+        readStream()
+      }).catch(reject)
+    })
+  }
+
   const handleFormSubmitAndView = async (formData: StudyPlanRequest) => {
+    console.log('=== handleFormSubmitAndView called ===')
+    console.log('Form data:', formData)
+    console.log('Is loading before:', isLoading)
+    
     setIsLoading(true)
     setError(null)
+    setProgressMessage(null)
+    setIsRetrying(false)
+    console.log('Set loading to true, error to null')
     
     // Auto-scroll to top when generation starts
     window.scrollTo({
@@ -41,24 +116,63 @@ export default function CreateStudyPlan() {
     })
     
     try {
+      // Check existing plans first
+      const existingPlans = JSON.parse(localStorage.getItem('studypal_plans') || '[]')
+      console.log('Existing plans in localStorage:', existingPlans)
+      console.log('Number of existing plans:', existingPlans.length)
+      
       // Generate study plan with existing schedule context
       const existingScheduleContext = ScheduleManager.generateExistingScheduleContext()
-      const response = await axios.post('/api/generate-plan', { 
-        ...formData, 
-        existingScheduleContext 
-      })
-      const plan = response.data
+      console.log('Existing schedule context:', existingScheduleContext)
+      
+      console.log('About to make streaming API call to /api/generate-plan-stream')
+      console.log('Request payload:', { ...formData, existingScheduleContext })
+      
+      // Use streaming API for real-time progress updates
+      const plan = await generateStudyPlanWithProgress({ ...formData, existingScheduleContext })
+      console.log('Generated plan received:', plan)
+      
+      // Check if fallback was used and show appropriate message
+      if (plan.generatedBy === 'fallback' || plan.id?.includes('fallback')) {
+        console.log('Fallback system was used')
+        setError('✨ AI was busy, so we generated your study plan using our smart fallback system! Your plan is ready.')
+        setTimeout(() => setError(null), 5000) // Clear message after 5 seconds
+      } else if (plan.generatedBy === 'emergency-fallback') {
+        console.log('Emergency fallback was used')
+        setError('⚡ Generated using our emergency backup system. Your study plan is ready!')
+        setTimeout(() => setError(null), 5000)
+      }
       
       // Check for schedule conflicts
+      console.log('About to check for conflicts with plan:', plan)
+      console.log('ScheduleManager available:', !!ScheduleManager)
+      console.log('detectConflicts method available:', !!ScheduleManager.detectConflicts)
+      
       const conflicts = ScheduleManager.detectConflicts(plan)
+      console.log('Conflicts detected:', conflicts)
+      console.log('Conflict dialog current state:', conflictDialog)
       
       if (conflicts.length > 0) {
+        console.log(`Found ${conflicts.length} schedule conflicts:`, conflicts)
+        console.log('Setting conflict dialog to open...')
+        
+        // Show notice about regeneration timing
+        setError('⚠️ Schedule conflicts detected! If you choose to regenerate, it may take longer because the AI was just used to generate your plan.')
+        
         setConflictDialog({
           isOpen: true,
           conflicts,
-          formData
+          formData,
+          generatedPlan: plan
         })
         setIsLoading(false)
+        console.log('Conflict dialog should now be open')
+        console.log('New conflict dialog state will be:', {
+          isOpen: true,
+          conflicts,
+          formData,
+          generatedPlan: plan
+        })
         return
       }
 
@@ -75,10 +189,10 @@ export default function CreateStudyPlan() {
         status: 'active' as const
       }
 
-      const existingPlans = JSON.parse(localStorage.getItem('studypal_plans') || '[]')
+      const savedPlans = JSON.parse(localStorage.getItem('studypal_plans') || '[]')
       
       // Check for duplicates based on subjects, target date, and creation time (within 5 seconds)
-      const isDuplicate = existingPlans.some((existingPlan: any) => {
+      const isDuplicate = savedPlans.some((existingPlan: any) => {
         const timeDiff = Math.abs(new Date(planToSave.createdAt).getTime() - new Date(existingPlan.createdAt).getTime())
         return (
           JSON.stringify(existingPlan.subjects.sort()) === JSON.stringify(planToSave.subjects.sort()) &&
@@ -88,32 +202,24 @@ export default function CreateStudyPlan() {
       })
       
       if (!isDuplicate) {
-        const updatedPlans = [planToSave, ...existingPlans]
+        const updatedPlans = [planToSave, ...savedPlans]
         localStorage.setItem('studypal_plans', JSON.stringify(updatedPlans))
       }
 
       setStudyPlan(plan)
       setShowPlanCard(true)
     } catch (error: any) {
+      console.error('=== ERROR in handleFormSubmitAndView ===')
+      console.error('Full error object:', error)
+      console.error('Error message:', error.message)
+      console.error('Error response:', error.response)
+      console.error('Error response data:', error.response?.data)
+      console.error('Error response status:', error.response?.status)
       console.error('Error generating study plan:', error)
       
-      // Handle rate limit errors with user-friendly message
-      if (error.response?.status === 429 || error.response?.data?.isRateLimit) {
-        const retryAfter = error.response?.data?.retryAfter || 10
-        setError(`Rate limit reached. The system will automatically retry in ${retryAfter} seconds...`)
-        
-        // Auto-retry after the specified time
-        setTimeout(async () => {
-          setError('Retrying...')
-          try {
-            await handleFormSubmitAndView(formData)
-          } catch (retryError) {
-            console.error('Retry failed:', retryError)
-            setError('Failed to generate study plan after retry. Please try again later.')
-            setIsLoading(false)
-          }
-        }, retryAfter * 1000)
-        return
+      // Handle any remaining errors (streaming should handle rate limits automatically)
+      if (error.message?.includes('rate limit') || error.message?.includes('429')) {
+        setError('⚠️ API is currently busy. The system will automatically retry with smart fallback.')
       }
       
       setError(error.response?.data?.error || 'Failed to generate study plan. Please try again.')
@@ -123,26 +229,32 @@ export default function CreateStudyPlan() {
   }
 
   const handleOverwriteExistingPlans = async () => {
-    setConflictDialog({ isOpen: false, conflicts: [], formData: undefined })
+    const lastFormData = conflictDialog.formData
+    const plan = conflictDialog.generatedPlan
+    const conflicts = conflictDialog.conflicts
+    
+    if (!lastFormData || !plan) {
+      setError('No plan data available to save')
+      return
+    }
+
+    setConflictDialog({ isOpen: false, conflicts: [], formData: undefined, generatedPlan: undefined })
     setIsLoading(true)
     
     try {
-      // Get the form data from the conflict dialog
-      const lastFormData = conflictDialog.formData
-      if (!lastFormData) {
-        setError('No form data available to generate plan')
-        return
-      }
+      console.log('Overwriting existing plans with new plan that has conflicts...')
+      console.log('Conflicts being overwritten:', conflicts)
 
-      // Generate plan without conflict checking
-      const existingScheduleContext = ScheduleManager.generateExistingScheduleContext()
-      const response = await axios.post('/api/generate-plan', { 
-        ...lastFormData, 
-        existingScheduleContext 
-      })
-      const plan = response.data
+      // Remove conflicting plans from localStorage
+      const existingPlans = JSON.parse(localStorage.getItem('studypal_plans') || '[]')
+      const conflictingPlanIds = new Set(conflicts.map(c => c.existingPlanId))
+      
+      // Filter out conflicting plans
+      const nonConflictingPlans = existingPlans.filter((existingPlan: any) => 
+        !conflictingPlanIds.has(existingPlan.id)
+      )
 
-      // Save the plan (overwriting conflicts)
+      // Save the new plan
       const planToSave = {
         id: Date.now().toString(),
         name: `${lastFormData.subjects.join(', ')} Study Plan`,
@@ -155,28 +267,16 @@ export default function CreateStudyPlan() {
         status: 'active' as const
       }
 
-      const existingPlans = JSON.parse(localStorage.getItem('studypal_plans') || '[]')
-      
-      // Check for duplicates
-      const isDuplicate = existingPlans.some((existingPlan: any) => {
-        const timeDiff = Math.abs(new Date(planToSave.createdAt).getTime() - new Date(existingPlan.createdAt).getTime())
-        return (
-          JSON.stringify(existingPlan.subjects.sort()) === JSON.stringify(planToSave.subjects.sort()) &&
-          existingPlan.targetDate === planToSave.targetDate &&
-          timeDiff < 5000
-        )
-      })
-      
-      if (!isDuplicate) {
-        const updatedPlans = [planToSave, ...existingPlans]
-        localStorage.setItem('studypal_plans', JSON.stringify(updatedPlans))
-      }
+      // Add the new plan to the non-conflicting plans
+      const updatedPlans = [planToSave, ...nonConflictingPlans]
+      localStorage.setItem('studypal_plans', JSON.stringify(updatedPlans))
 
+      console.log(`Removed ${conflictingPlanIds.size} conflicting plans and saved new plan`)
       setStudyPlan(plan)
       setShowPlanCard(true)
     } catch (error) {
-      console.error('Error generating study plan:', error)
-      setError('Failed to generate study plan. Please try again.')
+      console.error('Error saving study plan:', error)
+      setError('Failed to save study plan. Please try again.')
     } finally {
       setIsLoading(false)
     }
@@ -192,8 +292,11 @@ export default function CreateStudyPlan() {
       return
     }
     
-    setConflictDialog({ isOpen: false, conflicts: [], formData: undefined })
+    setConflictDialog({ isOpen: false, conflicts: [], formData: undefined, generatedPlan: undefined })
     setIsLoading(true)
+    
+    // Show initial regeneration notice
+    setError('🤖 Starting AI regeneration... This will take longer than usual because we just used the AI. Please be patient while we wait for the AI to be available again.')
     
     try {
       console.log('Starting regeneration process...')
@@ -242,14 +345,76 @@ MANDATORY RULES:
 SIMPLE INSTRUCTION: Create a study schedule using ONLY the available time slots listed above. This guarantees zero conflicts.`
 
       console.log('Making API call with conflict-free instructions...')
-      const response = await axios.post('/api/generate-plan', { 
-        ...lastFormData, 
-        existingScheduleContext: conflictFreeInstructions,
-        regenerateAttempt: true,
-        availableTimeSlots: availableTimeSlots
-      })
-      const plan = response.data
-      console.log('Received plan from API:', plan)
+      let plan
+      
+      // Retry AI generation with increasing delays
+      let retryCount = 0
+      const maxRetries = 3
+      
+      while (retryCount <= maxRetries) {
+        try {
+          if (retryCount === 0) {
+            setError('⏳ Regenerating with AI... This may take longer because the AI was just used to generate your previous plan. Please wait while we create a conflict-free version.')
+          } else {
+            setError(`⏳ AI is busy from recent usage, retrying in ${(retryCount * 15)} seconds... (Attempt ${retryCount + 1}/${maxRetries + 1})`)
+          }
+          
+          // Progressive delay: 2s, 15s, 30s, 45s
+          const delay = retryCount === 0 ? 2000 : retryCount * 15000
+          await new Promise(resolve => setTimeout(resolve, delay))
+          
+          const estimatedSeconds = (retryCount + 1) * 15 + 10 // Progressive timing: 25s, 40s, 55s, 70s
+          setError(`Generating AI-powered conflict-free study plan... (${estimatedSeconds} seconds)`)
+          
+          // Use the enhanced streaming endpoint for conflict-free regeneration
+          const response = await axios.post('/api/generate-plan', { 
+            ...lastFormData, 
+            existingScheduleContext: conflictFreeInstructions,
+            regenerateAttempt: true,
+            availableTimeSlots: availableTimeSlots,
+            // Ensure all original form data is preserved
+            specificTopics: lastFormData.specificTopics,
+            subjects: lastFormData.subjects,
+            dailyHours: lastFormData.dailyHours,
+            studyLevel: lastFormData.studyLevel,
+            goals: lastFormData.goals,
+            learningStyle: lastFormData.learningStyle,
+            difficulty: lastFormData.difficulty,
+            currentKnowledge: lastFormData.currentKnowledge,
+            preferences: lastFormData.preferences,
+            includeWeekends: lastFormData.includeWeekends,
+            preferredTimes: lastFormData.preferredTimes,
+            targetDate: lastFormData.targetDate
+          })
+          plan = response.data
+          console.log('Received plan from AI on attempt', retryCount + 1, ':', plan)
+          setError(null) // Clear success message
+          break // Success, exit retry loop
+          
+        } catch (apiError: any) {
+          console.log(`API call failed on attempt ${retryCount + 1}:`, apiError.response?.data || apiError.message)
+          
+          // Check if it's a rate limit error
+          const isRateLimit = apiError.response?.status === 429 || 
+                             apiError.response?.data?.isRateLimit ||
+                             apiError.message?.includes('Rate limit') ||
+                             apiError.response?.data?.error?.includes('Rate limit')
+          
+          if (isRateLimit && retryCount < maxRetries) {
+            console.log(`Rate limit detected, will retry in ${(retryCount + 1) * 15} seconds...`)
+            retryCount++
+            continue // Try again with longer delay
+          } else if (isRateLimit && retryCount >= maxRetries) {
+            // Only after all retries failed
+            setError('AI is currently overloaded. Please try again in a few minutes, or create a new study plan instead.')
+            setIsLoading(false)
+            return
+          } else {
+            // Re-throw the error if it's not a rate limit issue
+            throw apiError
+          }
+        }
+      }
 
       // Final conflict check (should be zero now)
       const conflicts = ScheduleManager.detectConflicts(plan)
@@ -394,7 +559,9 @@ SIMPLE INSTRUCTION: Create a study schedule using ONLY the available time slots 
   }
 
   const handleCancelConflictDialog = () => {
-    setConflictDialog({ isOpen: false, conflicts: [], formData: undefined })
+    setConflictDialog({ isOpen: false, conflicts: [], formData: undefined, generatedPlan: undefined })
+    setIsLoading(false)
+    setError(null)
   }
 
   const handleNewPlan = () => {
@@ -541,6 +708,30 @@ SIMPLE INSTRUCTION: Create a study schedule using ONLY the available time slots 
         </div>
 
       </div>
+
+      {/* Progress Notification - Shows retry status */}
+      {progressMessage && isRetrying && (
+        <div className="max-w-2xl mx-auto mb-6">
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4 shadow-lg animate-pulse">
+            <div className="flex items-center space-x-3">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+              <div className="flex-1">
+                <p className="text-blue-800 font-semibold text-lg">{progressMessage}</p>
+                <p className="text-blue-600 text-sm mt-1">Please wait while we handle the API rate limit...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Error Display */}
+      {error && !isRetrying && (
+        <div className="max-w-2xl mx-auto mb-6">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <p className="text-red-700 text-sm">{error}</p>
+          </div>
+        </div>
+      )}
 
       {/* Form - Only show when no plan is generated */}
       {!showPlanCard && !studyPlan && (
