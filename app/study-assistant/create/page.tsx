@@ -22,6 +22,7 @@ export default function CreateStudyPlan() {
   const [isRetrying, setIsRetrying] = useState(false)
   const [showPlanCard, setShowPlanCard] = useState(false)
   const [isViewingPlan, setIsViewingPlan] = useState(false)
+  const [lastRequestTime, setLastRequestTime] = useState<number>(0)
   const [conflictDialog, setConflictDialog] = useState<{
     isOpen: boolean
     conflicts: ScheduleConflict[]
@@ -103,6 +104,9 @@ export default function CreateStudyPlan() {
     console.log('Form data:', formData)
     console.log('Is loading before:', isLoading)
     
+    // Track request time for debugging but don't block requests
+    const now = Date.now()
+    setLastRequestTime(now)
     setIsLoading(true)
     setError(null)
     setProgressMessage(null)
