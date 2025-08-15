@@ -17,6 +17,20 @@ import {
 import { Calendar, Clock, BookOpen, Lightbulb, Target, Download, Brain, CheckCircle, Circle, ExternalLink, Play, FileText, Code, Award, DollarSign } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
 
+// Helper function to format duration from decimal hours to hours and minutes
+const formatDuration = (hours: number): string => {
+  const wholeHours = Math.floor(hours)
+  const minutes = Math.round((hours - wholeHours) * 60)
+  
+  if (wholeHours === 0) {
+    return `${minutes}min`
+  } else if (minutes === 0) {
+    return `${wholeHours}h`
+  } else {
+    return `${wholeHours}h ${minutes}min`
+  }
+}
+
 interface StudyPlanDisplayProps {
   studyPlan: StudyPlan
   onNewPlan: () => void
@@ -155,7 +169,7 @@ WEEKLY SCHEDULE:
 ${studyPlan.weeklySchedule ? Object.entries(studyPlan.weeklySchedule).map(([day, schedule]) => `
 ${day.toUpperCase()}:
 ${schedule.subjects.map(subject => 
-  `  • ${subject.subject} (${subject.duration}h) - ${subject.timeSlot}
+  `  • ${subject.subject} (${formatDuration(subject.duration)}) - ${subject.timeSlot}
     Focus: ${subject.focus}
     Priority: ${subject.priority}`
 ).join('\n')}
@@ -164,7 +178,7 @@ Total Hours: ${schedule.totalHours}h
 
 REVISION SCHEDULE:
 ${studyPlan.revisionSchedule ? studyPlan.revisionSchedule.map(item => 
-  `• ${item.date} - ${item.subject} (${item.duration}h)
+  `• ${item.date} - ${item.subject} (${formatDuration(item.duration)})
   Topics: ${item.topics.join(', ')}`
 ).join('\n') : 'No revision schedule available'}
 
@@ -369,7 +383,7 @@ ${studyPlan.flashcards ? studyPlan.flashcards.map((card, index) =>
                                 </span>
                               </div>
                               <div className={`text-sm font-medium ${isCompleted ? 'line-through text-gray-400' : 'text-blue-600'}`}>
-                                {subject.duration || 1}h duration
+                                {formatDuration(subject.duration || 1)} duration
                               </div>
                             </div>
                           </div>
@@ -511,7 +525,7 @@ ${studyPlan.flashcards ? studyPlan.flashcards.map((card, index) =>
                                     </span>
                                   </div>
                                   <div className={`text-sm font-medium ${isCompleted ? 'line-through text-gray-400' : 'text-blue-600'}`}>
-                                    {session.duration || 1}h duration
+                                    {formatDuration(session.duration || 1)} duration
                                   </div>
                                 </div>
                               </div>
@@ -774,7 +788,7 @@ ${studyPlan.flashcards ? studyPlan.flashcards.map((card, index) =>
                     <Clock className="h-3 w-3" />
                     {confirmDialog.subject.timeSlot}
                   </span>
-                  <span>{confirmDialog.subject.duration}h duration</span>
+                  <span>{formatDuration(confirmDialog.subject.duration)} duration</span>
                 </div>
               </div>
             </div>
