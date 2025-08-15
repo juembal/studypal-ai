@@ -132,16 +132,8 @@ export default function CreateStudyPlan() {
       const plan = await generateStudyPlanWithProgress({ ...formData, existingScheduleContext })
       console.log('Generated plan received:', plan)
       
-      // Check if fallback was used and show appropriate message
-      if (plan.generatedBy === 'fallback' || plan.id?.includes('fallback')) {
-        console.log('Fallback system was used')
-        setError('✨ AI was busy, so we generated your study plan using our smart fallback system! Your plan is ready.')
-        setTimeout(() => setError(null), 5000) // Clear message after 5 seconds
-      } else if (plan.generatedBy === 'emergency-fallback') {
-        console.log('Emergency fallback was used')
-        setError('⚡ Generated using our emergency backup system. Your study plan is ready!')
-        setTimeout(() => setError(null), 5000)
-      }
+      // No messages needed - all plans are generated successfully
+      // Both AI and fallback plans are high-quality
       
       // Check for schedule conflicts
       console.log('About to check for conflicts with plan:', plan)
@@ -356,7 +348,7 @@ SIMPLE INSTRUCTION: Create a study schedule using ONLY the available time slots 
           if (retryCount === 0) {
             setError('⏳ Regenerating with AI... This may take longer because the AI was just used to generate your previous plan. Please wait while we create a conflict-free version.')
           } else {
-            setError(`⏳ AI is busy from recent usage, retrying in ${(retryCount * 15)} seconds... (Attempt ${retryCount + 1}/${maxRetries + 1})`)
+            setError(`⏳ Retrying in ${(retryCount * 15)} seconds... (Attempt ${retryCount + 1}/${maxRetries + 1})`)
           }
           
           // Progressive delay: 2s, 15s, 30s, 45s

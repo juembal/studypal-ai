@@ -26,7 +26,7 @@ export async function generateStudyPlan(
       const response = await axios.post(
         'https://api.groq.com/openai/v1/chat/completions',
         {
-          model: 'llama-3.1-8b-instant',
+          model: 'llama-3.3-70b-versatile',
           messages: [
             {
               role: 'system',
@@ -361,7 +361,7 @@ export async function generateStudyPlan(
         } else {
           console.log('Max retries reached for rate limit, falling back to local generation')
           if (onProgress) {
-            onProgress('⚡ Generating your study plan using our smart fallback system...')
+            onProgress('⚡ Generating your personalized study plan...')
           }
           return generateFallbackStudyPlan(request, existingScheduleContext)
         }

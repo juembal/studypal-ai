@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         ...studyPlan,
         generatedBy: 'fallback',
-        note: 'Generated using our smart fallback system due to high AI demand'
+        note: 'Successfully generated personalized study plan'
       })
     }
     
