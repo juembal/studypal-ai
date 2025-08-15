@@ -11,6 +11,14 @@ export async function POST(request: NextRequest) {
     console.log('Request body received:', body)
     console.log('Environment check - GROQ_API_KEY exists:', !!process.env.GROQ_API_KEY)
     
+    // Check if body was successfully parsed
+    if (!body) {
+      return NextResponse.json(
+        { error: 'Invalid request body' },
+        { status: 400 }
+      )
+    }
+    
     // Validate required fields
     if (!body.subjects || body.subjects.length === 0) {
       return NextResponse.json(
