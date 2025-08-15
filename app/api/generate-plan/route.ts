@@ -3,9 +3,11 @@ import { generateStudyPlan } from '@/lib/groq'
 import { StudyPlanRequest } from '@/lib/types'
 
 export async function POST(request: NextRequest) {
+  let body: StudyPlanRequest
+  
   try {
     console.log('API route called - generate-plan')
-    const body: StudyPlanRequest = await request.json()
+    body = await request.json()
     console.log('Request body received:', body)
     console.log('Environment check - GROQ_API_KEY exists:', !!process.env.GROQ_API_KEY)
     
