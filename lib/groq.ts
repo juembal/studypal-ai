@@ -1,30 +1,13 @@
 import axios from 'axios'
 import { StudyPlan, StudyPlanRequest, StudySession, Flashcard } from './types'
 
-// Simple rate limiting queue
-let lastRequestTime = 0
-const MIN_REQUEST_INTERVAL = 2000 // 2 seconds between requests
-
-async function waitForRateLimit() {
-  const now = Date.now()
-  const timeSinceLastRequest = now - lastRequestTime
-  
-  if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
-    const waitTime = MIN_REQUEST_INTERVAL - timeSinceLastRequest
-    console.log(`Rate limiting: waiting ${waitTime}ms before API call`)
-    await new Promise(resolve => setTimeout(resolve, waitTime))
-  }
-  
-  lastRequestTime = Date.now()
-}
-
 export async function generateStudyPlan(
   request: StudyPlanRequest,
   existingScheduleContext?: any,
   onProgress?: (message: string) => void
 ): Promise<StudyPlan> {
-  // Try the API with proper retry logic to prioritize AI usage
-  const maxRetries = 3 // Restored to 3 to give AI more chances
+  // First try the API with retry logic
+  const maxRetries = 3
   let lastError: any = null
   
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
@@ -33,24 +16,17 @@ export async function generateStudyPlan(
       console.log('API Key exists:', !!process.env.GROQ_API_KEY)
       console.log('API Key preview:', process.env.GROQ_API_KEY?.substring(0, 10) + '...')
 
-      // Only use fallback if API key is completely missing (not just empty)
       if (!process.env.GROQ_API_KEY) {
-        console.log('No API key environment variable found, using fallback')
-        if (onProgress) {
-          onProgress('⚡ Using smart fallback system (no API key configured)...')
-        }
+        console.log('No API key found, falling back to local generation')
         return generateFallbackStudyPlan(request, existingScheduleContext)
       }
 
       const prompt = buildStudyPlanPrompt(request, existingScheduleContext)
 
-      // Wait for rate limit before making request
-      await waitForRateLimit()
-
       const response = await axios.post(
         'https://api.groq.com/openai/v1/chat/completions',
         {
-          model: 'llama-3.1-70b-versatile',
+          model: 'llama-3.1-8b-instant',
           messages: [
             {
               role: 'system',
@@ -62,14 +38,14 @@ export async function generateStudyPlan(
             }
           ],
           temperature: 0.7,
-          max_tokens: 3000
+          max_tokens: 4000
         },
         {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${process.env.GROQ_API_KEY}`
           },
-          timeout: 15000 // Reduced to 15 second timeout for faster fallback
+          timeout: 30000 // 30 second timeout
         }
       )
 
@@ -128,10 +104,67 @@ export async function generateStudyPlan(
         
       } catch (secondError) {
         console.error('Second parse attempt failed:', secondError)
-        console.error('JSON parsing failed, will retry API call...')
+        console.error('Both JSON parsing attempts failed. Creating fallback plan...')
         
-        // Throw error to trigger retry instead of immediate fallback
-        throw new Error(`JSON parsing failed on attempt ${attempt}: ${secondError.message}`)
+        // Create a basic fallback plan structure when JSON parsing completely fails
+        console.log('Creating conflict-aware fallback plan...')
+        
+        // Check if we have existing schedule context to avoid conflicts
+        const hasExistingSchedule = existingScheduleContext && 
+          typeof existingScheduleContext === 'string' && 
+          existingScheduleContext.includes('AVAILABLE TIME SLOTS')
+        
+        const fallbackPlan: StudyPlan = {
+          id: `fallback_plan_${Date.now()}`,
+          name: `${request.subjects.join(', ')} Study Plan (Smart Generated)`,
+          subjects: request.subjects,
+          studyLevel: request.studyLevel,
+          totalHours: request.dailyHours * (request.includeWeekends === 'all' ? 7 : 5) * 4, // 4 weeks
+          dailyHours: request.dailyHours,
+          startDate: new Date().toISOString().split('T')[0],
+          targetDate: request.targetDate,
+          goals: request.goals,
+          weeklySchedule: createFallbackWeeklySchedule(request, hasExistingSchedule ? existingScheduleContext : null),
+          sessions: createFallbackSessions(request, hasExistingSchedule ? existingScheduleContext : null),
+          flashcards: createFallbackFlashcards(request),
+          revisionSchedule: [],
+          learningTips: [
+            'Use active recall techniques during study sessions',
+            'Take regular breaks every 25-30 minutes',
+            'Review material within 24 hours of learning',
+            'Practice spaced repetition for better retention',
+            'Create summaries and mind maps for complex topics',
+            'Test yourself frequently instead of just re-reading',
+            'Study in a quiet, well-lit environment',
+            'Stay hydrated and maintain good posture while studying'
+          ],
+          examStrategy: [
+            'Create a detailed revision timeline leading up to exams',
+            'Use past papers and mock tests to simulate exam conditions',
+            'Maintain a consistent study routine and sleep schedule',
+            'Practice time management during mock exams',
+            'Review key concepts the night before, avoid cramming new material',
+            'Start with easier questions to build confidence'
+          ],
+          onlineResources: generateOnlineResources(request.subjects, request.specificTopics),
+          progress: {
+            completedSessions: 0,
+            totalSessions: 0,
+            completedHours: 0,
+            totalHours: request.dailyHours * (request.includeWeekends === 'all' ? 7 : 5) * 4
+          },
+          status: 'active',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+        
+        // Update progress with actual session count
+        if (fallbackPlan.progress) {
+          fallbackPlan.progress.totalSessions = fallbackPlan.sessions.length
+        }
+        
+        console.log('Created fallback plan:', fallbackPlan)
+        return fallbackPlan
       }
     }
     
@@ -155,52 +188,42 @@ export async function generateStudyPlan(
         .trim()
     }
 
-    // Filter and auto-correct sessions - keep all sessions but only count study sessions for progress
-    const allSessions = studyPlanData.sessions || []
-    const studySessions = allSessions.filter((session: any) => {
-      if (!session.subject) return false
-      // Filter out breaks when counting study sessions
-      if (session.subject.toLowerCase() === 'break' || session.type === 'break') return false
-      // Very lenient matching - accept if session subject contains any word from original subjects
-      return request.subjects.some(subject => {
-        const subjectWords = subject.toLowerCase().split(' ')
-        const sessionSubject = session.subject.toLowerCase()
-        return subjectWords.some(word => sessionSubject.includes(word)) ||
-               sessionSubject.includes(subject.toLowerCase()) ||
-               subject.toLowerCase().includes(sessionSubject)
+    // Filter and auto-correct sessions to only include the original subjects
+    const filteredSessions = studyPlanData.sessions ? studyPlanData.sessions
+      .filter((session: any) => {
+        if (!session.subject) return false
+        // Very lenient matching - accept if session subject contains any word from original subjects
+        return request.subjects.some(subject => {
+          const subjectWords = subject.toLowerCase().split(' ')
+          const sessionSubject = session.subject.toLowerCase()
+          return subjectWords.some(word => sessionSubject.includes(word)) ||
+                 sessionSubject.includes(subject.toLowerCase()) ||
+                 subject.toLowerCase().includes(sessionSubject)
+        })
       })
-    })
-    
-    // Keep all sessions including breaks for the schedule
-    const filteredSessions = allSessions
       .map((session: any) => ({
         ...session,
         subject: autoCorrectSubject(session.subject),
         topic: session.topic ? autoCorrectSubject(session.topic) : session.topic
-      }))
+      })) : []
     
     // Filter and auto-correct weekly schedule to only include original subjects
     const filteredWeeklySchedule: any = {}
     if (studyPlanData.weeklySchedule) {
       Object.entries(studyPlanData.weeklySchedule).forEach(([day, schedule]: [string, any]) => {
         if (schedule && schedule.subjects) {
-          // Keep all subjects including breaks for the schedule, but calculate totalHours only from study subjects
-          const allSubjects = schedule.subjects || []
-          const studySubjects = allSubjects.filter((subjectInfo: any) => {
-            if (!subjectInfo.subject) return false
-            // Filter out breaks when calculating study subjects
-            if (subjectInfo.subject.toLowerCase() === 'break' || subjectInfo.type === 'break') return false
-            // Very lenient matching for weekly schedule
-            return request.subjects.some(subject => {
-              const subjectWords = subject.toLowerCase().split(' ')
-              const scheduleSubject = subjectInfo.subject.toLowerCase()
-              return subjectWords.some(word => scheduleSubject.includes(word)) ||
-                     scheduleSubject.includes(subject.toLowerCase()) ||
-                     subject.toLowerCase().includes(scheduleSubject)
+          const filteredSubjects = schedule.subjects
+            .filter((subjectInfo: any) => {
+              if (!subjectInfo.subject) return false
+              // Very lenient matching for weekly schedule
+              return request.subjects.some(subject => {
+                const subjectWords = subject.toLowerCase().split(' ')
+                const scheduleSubject = subjectInfo.subject.toLowerCase()
+                return subjectWords.some(word => scheduleSubject.includes(word)) ||
+                       scheduleSubject.includes(subject.toLowerCase()) ||
+                       subject.toLowerCase().includes(scheduleSubject)
+              })
             })
-          })
-          
-          const filteredSubjects = allSubjects
             .map((subjectInfo: any) => ({
               ...subjectInfo,
               subject: autoCorrectSubject(subjectInfo.subject),
@@ -208,7 +231,7 @@ export async function generateStudyPlan(
             }))
           filteredWeeklySchedule[day] = {
             subjects: filteredSubjects,
-            totalHours: studySubjects.reduce((total: number, s: any) => total + (s.duration || 0), 0)
+            totalHours: filteredSubjects.reduce((total: number, s: any) => total + (s.duration || 0), 0)
           }
         } else {
           filteredWeeklySchedule[day] = { subjects: [], totalHours: 0 }
@@ -247,28 +270,20 @@ export async function generateStudyPlan(
     })
     
     // If filtering removed everything, use original data with subject correction
-    if (studySessions.length === 0 && studyPlanData.sessions && studyPlanData.sessions.length > 0) {
-      console.log('⚠️ Filtering removed all study sessions, using original with subject correction')
-      const originalStudySessions = studyPlanData.sessions
-        .filter((session: any) => session.subject && session.subject.toLowerCase() !== 'break' && session.type !== 'break')
-        .map((session: any) => ({
-          ...session,
-          subject: request.subjects[0] || session.subject, // Use first original subject
-          topic: session.topic
-        }))
-      filteredSessions.push(...studyPlanData.sessions) // Keep all sessions including breaks
-      studySessions.push(...originalStudySessions) // Only study sessions for progress
+    if (filteredSessions.length === 0 && studyPlanData.sessions && studyPlanData.sessions.length > 0) {
+      console.log('⚠️ Filtering removed all sessions, using original with subject correction')
+      filteredSessions.push(...studyPlanData.sessions.map((session: any) => ({
+        ...session,
+        subject: request.subjects[0] || session.subject, // Use first original subject
+        topic: session.topic
+      })))
     }
     
-    // If we still have no study sessions, create fallback sessions
-    if (studySessions.length === 0) {
-      console.log('⚠️ No study sessions found, creating fallback sessions')
+    // If we still have no sessions, create fallback sessions
+    if (filteredSessions.length === 0) {
+      console.log('⚠️ No sessions found, creating fallback sessions')
       const fallbackSessions = createFallbackSessions(request, null)
       filteredSessions.push(...fallbackSessions)
-      // Add only study sessions to studySessions for progress tracking
-      studySessions.push(...fallbackSessions.filter((session: any) => 
-        session.subject && session.subject.toLowerCase() !== 'break' && session.type !== 'break'
-      ))
     }
     
     // Ensure weekly schedule has content
@@ -300,7 +315,7 @@ export async function generateStudyPlan(
       onlineResources: studyPlanData.onlineResources || [],
       progress: {
         completedSessions: 0,
-        totalSessions: studySessions.length,
+        totalSessions: filteredSessions.length,
         completedHours: 0,
         totalHours: studyPlanData.totalHours || (request.dailyHours * (request.includeWeekends === 'all' ? 7 : 5) * 4)
       },
@@ -316,62 +331,51 @@ export async function generateStudyPlan(
       console.error(`Groq API error on attempt ${attempt}:`, error)
       lastError = error
       
-      // Handle rate limiting with proper backoff to prioritize AI
-      if (error.response?.status === 429 || 
-          error.message?.includes('rate limit') || 
-          error.message?.includes('Rate limit') ||
-          error.response?.data?.error?.message?.includes('rate limit')) {
-        
-        const retryAfter = error.response?.headers['retry-after'] 
-        const waitTime = retryAfter ? parseInt(retryAfter) : Math.min(attempt * 5, 20) // Longer waits to avoid repeated rate limits
-        
-        console.log(`Rate limit detected, waiting ${waitTime} seconds before retry...`)
-        console.log('Rate limit error details:', error.response?.data || error.message)
+      // Handle rate limiting with exponential backoff
+      if (error.response?.status === 429) {
+        const retryAfter = error.response?.headers['retry-after'] || Math.pow(2, attempt) * 5 // Exponential backoff
+        console.log(`Rate limit hit, waiting ${retryAfter} seconds before retry...`)
         
         if (attempt < maxRetries) {
           // Notify frontend about the wait
+          const message = `Rate limit hit, waiting ${retryAfter} seconds before retry...`
           if (onProgress) {
-            onProgress(`⏳ Groq API rate limit hit, waiting ${waitTime} seconds (attempt ${attempt}/${maxRetries})...`)
+            onProgress(message)
           }
           
-          // Wait for rate limit to clear with extra buffer
-          await new Promise(resolve => setTimeout(resolve, waitTime * 1000))
+          console.log(`Waiting ${retryAfter} seconds before retry attempt ${attempt + 1}...`)
+          
+          // Create a countdown for better UX
+          for (let i = retryAfter; i > 0; i--) {
+            if (onProgress) {
+              onProgress(`⏳ Retrying in ${i} seconds...`)
+            }
+            await new Promise(resolve => setTimeout(resolve, 1000))
+          }
           
           if (onProgress) {
-            onProgress(`🔄 Retrying AI generation now...`)
+            onProgress(`🔄 Retrying now...`)
           }
           
           continue // Retry the loop
         } else {
           console.log('Max retries reached for rate limit, falling back to local generation')
           if (onProgress) {
-            onProgress('⚡ AI rate limit exceeded, using smart fallback system...')
+            onProgress('⚡ Generating your study plan using our smart fallback system...')
           }
           return generateFallbackStudyPlan(request, existingScheduleContext)
         }
       }
       
-      // Handle authentication errors - provide clear feedback and fallback
+      // Handle other API errors
       if (error.response?.status === 401) {
-        console.log(`❌ Invalid API key detected on attempt ${attempt}`)
-        console.log('API key preview:', process.env.GROQ_API_KEY?.substring(0, 15) + '...')
-        console.log('Error details:', error.response?.data)
-        
-        if (onProgress) {
-          onProgress(`🔑 API key authentication failed. Using fallback system...`)
-        }
-        
-        // Don't retry auth errors - go straight to fallback
-        console.log('Authentication failed, using fallback immediately')
+        console.log('Invalid API key, falling back to local generation')
         return generateFallbackStudyPlan(request, existingScheduleContext)
       }
       
       if (error.response?.status === 403) {
-        console.log(`API access forbidden on attempt ${attempt}, will retry...`)
-        if (attempt < maxRetries) {
-          await new Promise(resolve => setTimeout(resolve, 1000 * attempt))
-          continue
-        }
+        console.log('API access forbidden, falling back to local generation')
+        return generateFallbackStudyPlan(request, existingScheduleContext)
       }
       
       // For network errors or timeouts, retry
@@ -975,7 +979,7 @@ function buildStudyPlanPrompt(request: StudyPlanRequest, existingScheduleContext
 **Required JSON Structure:**
 {
   "name": "Study Plan Name",
-  "totalHours": ${request.dailyHours},
+  "totalHours": ${request.dailyHours * (request.includeWeekends === 'all' ? 7 : 5)},
   "weeklySchedule": {
     "Monday": {
       "subjects": [
@@ -996,7 +1000,7 @@ function buildStudyPlanPrompt(request: StudyPlanRequest, existingScheduleContext
           "type": "practice"
         }
       ],
-      "totalHours": ${request.dailyHours}
+      "totalHours": 3
     },
     "Tuesday": {
       "subjects": [],
@@ -1299,7 +1303,19 @@ function createFallbackWeeklySchedule(request: StudyPlanRequest, existingSchedul
           type: sessionType
         })
         
-        // Breaks are handled naturally by spacing between time slots - no need to add as subjects
+        // Add break between sessions (except for the last session of the day)
+        if (sessionCount < targetSessions - 1 && sessionCount < timeSlots.length - 1) {
+          const breakDuration = 0.25 // 15-minute break
+          schedule[day].subjects.push({
+            subject: 'Break',
+            duration: breakDuration,
+            timeSlot: 'Break Time',
+            focus: 'Rest and recharge',
+            priority: 'low',
+            type: 'break'
+          })
+          dailyHours += breakDuration
+        }
         
         dailyHours += duration
         sessionCount++
