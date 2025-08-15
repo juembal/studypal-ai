@@ -1,59 +1,50 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { GraduationCap, Brain, Users, Zap, Target, Heart, ArrowRight, Calendar, Star } from 'lucide-react'
+import { Brain, Target, ArrowRight, Calendar, Star, TrendingUp, Zap, CheckCircle } from 'lucide-react'
 import Link from 'next/link'
 
-const teamMembers = [
+const coreFeatures = [
   {
-    name: 'Dr. Sarah Chen',
-    role: 'AI Research Lead',
-    description: 'PhD in Machine Learning from Stanford. Specializes in educational AI and personalized learning systems.',
-    icon: Brain
+    title: 'AI-Powered Intelligence',
+    description: 'Advanced AI analyzes your learning patterns and creates optimized study plans that adapt to your unique needs.',
+    icon: Brain,
+    gradient: 'from-blue-500 to-cyan-500'
   },
   {
-    name: 'Michael Rodriguez',
-    role: 'Education Specialist',
-    description: 'Former high school teacher with 15+ years experience. Expert in curriculum design and study methodologies.',
-    icon: GraduationCap
+    title: 'Personalized Learning',
+    description: 'Every study plan is tailored to your subjects, weak areas, available time, and preferred learning style.',
+    icon: Target,
+    gradient: 'from-green-500 to-emerald-500'
   },
   {
-    name: 'Emily Johnson',
-    role: 'Product Designer',
-    description: 'UX/UI designer focused on creating intuitive educational tools that enhance learning experiences.',
-    icon: Heart
+    title: 'Smart Scheduling',
+    description: 'Automatically optimizes your study schedule to avoid conflicts and maximize learning efficiency.',
+    icon: Calendar,
+    gradient: 'from-amber-500 to-orange-500'
   },
   {
-    name: 'David Kim',
-    role: 'Software Engineer',
-    description: 'Full-stack developer with expertise in AI integration and scalable web applications.',
-    icon: Zap
+    title: 'Progress Tracking',
+    description: 'Monitor your learning journey with detailed analytics and adaptive recommendations.',
+    icon: TrendingUp,
+    gradient: 'from-purple-500 to-pink-500'
   }
 ]
 
-const features = [
+const benefits = [
   {
-    title: 'AI-Powered Intelligence',
-    description: 'Our advanced AI analyzes your learning patterns, subjects, and goals to create optimized study plans that adapt to your unique needs.',
-    icon: Brain,
-    color: 'blue'
+    title: 'Save Time',
+    description: 'Reduce study planning time with AI-generated schedules',
+    icon: Zap
   },
   {
-    title: 'Evidence-Based Methods',
-    description: 'Built on proven educational research and cognitive science principles to maximize retention and learning efficiency.',
-    icon: Target,
-    color: 'green'
+    title: 'Better Results',
+    description: 'Improve retention and test performance with structured learning',
+    icon: Star
   },
   {
-    title: 'Personalized Experience',
-    description: 'Every study plan is tailored to your specific subjects, weak areas, available time, and preferred learning style.',
-    icon: Users,
-    color: 'amber'
-  },
-  {
-    title: 'Continuous Improvement',
-    description: 'Our AI learns from thousands of successful study plans to continuously improve recommendations and strategies.',
-    icon: Zap,
-    color: 'yellow'
+    title: 'Stay Organized',
+    description: 'Never miss important topics with intelligent prioritization',
+    icon: CheckCircle
   }
 ]
 
@@ -61,306 +52,214 @@ export default function About() {
   return (
     <div className="relative overflow-hidden">
       {/* Hero Section */}
-      <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden pt-24 z-20">
-        <div className="container mx-auto px-4 text-center">
-          <div className="max-w-5xl mx-auto">
-            <div className="animate-slide-up">
+      <section className="relative min-h-[90vh] flex items-center justify-center pt-20 pb-16">
+        <div className="container mx-auto px-6">
+          <div className="max-w-4xl mx-auto text-center">
+            <div className="animate-slide-up space-y-8">
+              {/* Logo Icon */}
               <div className="flex justify-center mb-8">
-                <div className="p-6 bg-gradient-to-br from-studypal-blue to-studypal-cyan rounded-3xl shadow-2xl">
-                  <GraduationCap className="h-16 w-16 text-white" />
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-3xl blur-xl opacity-30 animate-pulse"></div>
+                  <div className="relative p-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-3xl shadow-2xl">
+                    <div className="book-simple w-16 h-16 cursor-pointer relative">
+                      <svg viewBox="0 0 32 32" fill="none" className="w-full h-full">
+                        {/* Open Book */}
+                        <g className="open-book">
+                          {/* Left Page */}
+                          <path 
+                            d="M2 8 C2 6 4 6 6 6 C10 6 14 8 16 10 L16 26 C14 24 10 22 6 22 C4 22 2 22 2 24 Z" 
+                            fill="white" 
+                            stroke="rgba(255,255,255,0.8)" 
+                            strokeWidth="0.5"
+                          />
+                          
+                          {/* Right Page */}
+                          <path 
+                            d="M30 8 C30 6 28 6 26 6 C22 6 18 8 16 10 L16 26 C18 24 22 22 26 22 C28 22 30 22 30 24 Z" 
+                            fill="white" 
+                            stroke="rgba(255,255,255,0.8)" 
+                            strokeWidth="0.5"
+                          />
+                          
+                          {/* Text Lines - Left */}
+                          <g className="text-lines opacity-80">
+                            <line x1="4" y1="12" x2="12" y2="12" stroke="rgba(59,130,246,0.8)" strokeWidth="0.8"/>
+                            <line x1="4" y1="14" x2="11" y2="14" stroke="rgba(59,130,246,0.8)" strokeWidth="0.8"/>
+                            <line x1="4" y1="16" x2="13" y2="16" stroke="rgba(59,130,246,0.8)" strokeWidth="0.8"/>
+                            <line x1="4" y1="18" x2="10" y2="18" stroke="rgba(59,130,246,0.8)" strokeWidth="0.8"/>
+                          </g>
+                          
+                          {/* Text Lines - Right */}
+                          <g className="text-lines opacity-80">
+                            <line x1="20" y1="12" x2="28" y2="12" stroke="rgba(59,130,246,0.8)" strokeWidth="0.8"/>
+                            <line x1="20" y1="14" x2="27" y2="14" stroke="rgba(59,130,246,0.8)" strokeWidth="0.8"/>
+                            <line x1="20" y1="16" x2="29" y2="16" stroke="rgba(59,130,246,0.8)" strokeWidth="0.8"/>
+                            <line x1="20" y1="18" x2="26" y2="18" stroke="rgba(59,130,246,0.8)" strokeWidth="0.8"/>
+                          </g>
+                        </g>
+                      </svg>
+                    </div>
+                  </div>
                 </div>
               </div>
-              <h1 className="text-5xl lg:text-6xl font-bold mb-8 font-heading">
-                About <span className="text-studypal-gray-900">Study</span><span className="text-gradient">Pal</span>
-              </h1>
-              <p className="text-2xl text-studypal-gray-600 max-w-4xl mx-auto leading-relaxed mb-8">
-                Your intelligent AI study companion that transforms how you learn
-              </p>
-              <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-gray-100">
-                <p className="text-lg text-studypal-gray-700 leading-relaxed">
-                  StudyPal creates personalized study plans, optimizes your schedule, and helps you focus on areas that need the most attention. 
+
+              {/* Main Heading */}
+              <div className="space-y-6">
+                <h1 className="text-5xl lg:text-7xl font-bold font-heading">
+                  About <span className="text-gray-900">Study</span><span className="text-gradient">Pal</span>
+                </h1>
+                <p className="text-xl lg:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+                  Your intelligent AI study companion that transforms how you learn
+                </p>
+              </div>
+
+              {/* Mission Statement */}
+              <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-8 lg:p-12 shadow-xl border border-gray-100 max-w-3xl mx-auto">
+                <p className="text-lg lg:text-xl text-gray-700 leading-relaxed">
+                  StudyPal creates <span className="font-semibold text-blue-600">personalized study plans</span>, 
+                  optimizes your schedule, and helps you focus on areas that need the most attention. 
                   Join thousands of students who have transformed their learning with AI-powered study strategies.
                 </p>
               </div>
+
             </div>
           </div>
         </div>
       </section>
 
-      {/* What We Do Section */}
-      <section className="py-20 bg-gradient-to-br from-gray-50 to-white relative z-20">
-        <div className="container mx-auto px-4">
+      {/* Core Features Section */}
+      <section className="py-24 bg-gradient-to-br from-gray-50 to-white">
+        <div className="container mx-auto px-6">
           <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16 animate-fade-in">
-              <h2 className="text-4xl lg:text-5xl font-bold mb-6 text-studypal-gray-900 font-heading">What We Do</h2>
-              <p className="text-xl text-studypal-gray-600 max-w-3xl mx-auto leading-relaxed">
-                Revolutionizing education through intelligent AI-powered study solutions
+            {/* Section Header */}
+            <div className="text-center mb-20 animate-fade-in">
+              <h2 className="text-4xl lg:text-5xl font-bold mb-6 text-gray-900 font-heading">
+                Core Features
+              </h2>
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+                Powerful AI-driven tools designed to transform your learning experience
               </p>
             </div>
             
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
-              <div className="space-y-6">
-                <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100">
-                  <div className="flex items-center mb-4">
-                    <div className="p-3 bg-gradient-to-r from-studypal-blue to-studypal-cyan rounded-xl mr-4">
-                      <Brain className="h-6 w-6 text-white" />
-                    </div>
-                    <h3 className="text-xl font-bold text-studypal-gray-900">AI-Powered Analysis</h3>
-                  </div>
-                  <p className="text-studypal-gray-600 leading-relaxed">
-                    Our advanced AI analyzes your learning patterns, available time, and academic goals to create the most effective study approach.
-                  </p>
-                </div>
-                
-                <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100">
-                  <div className="flex items-center mb-4">
-                    <div className="p-3 bg-gradient-to-r from-studypal-green to-studypal-green/80 rounded-xl mr-4">
-                      <Target className="h-6 w-6 text-white" />
-                    </div>
-                    <h3 className="text-xl font-bold text-studypal-gray-900">Personalized Plans</h3>
-                  </div>
-                  <p className="text-studypal-gray-600 leading-relaxed">
-                    Every study plan is tailored to your specific subjects, weak areas, and learning preferences for maximum efficiency.
-                  </p>
-                </div>
-              </div>
-              
-              <div className="bg-gradient-to-br from-studypal-blue/10 to-studypal-cyan/10 rounded-3xl p-8 lg:p-12">
-                <h3 className="text-2xl font-bold text-studypal-gray-900 mb-6">Our Mission</h3>
-                <p className="text-lg text-studypal-gray-700 leading-relaxed mb-6">
-                  We combine cutting-edge artificial intelligence with proven educational methodologies to help students achieve better results in less time.
-                </p>
-                <p className="text-lg text-studypal-gray-700 leading-relaxed">
-                  StudyPal transforms the way you learn by creating customized study plans that adapt to your unique needs and maximize your learning potential.
-                </p>
-              </div>
+            {/* Features Grid */}
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+              {coreFeatures.map((feature, index) => {
+                const IconComponent = feature.icon
+                return (
+                  <Card key={index} className="group border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2 bg-white/80 backdrop-blur-sm">
+                    <CardHeader className="text-center pb-4">
+                      <div className="relative mb-6">
+                        <div className={`absolute inset-0 bg-gradient-to-r ${feature.gradient} rounded-2xl blur-lg opacity-20 group-hover:opacity-40 transition-opacity duration-300`}></div>
+                        <div className={`relative p-4 bg-gradient-to-br ${feature.gradient} rounded-2xl w-fit mx-auto shadow-lg`}>
+                          <IconComponent className="h-8 w-8 text-white" />
+                        </div>
+                      </div>
+                      <CardTitle className="text-xl font-bold mb-3 font-heading text-gray-900">
+                        {feature.title}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="text-center">
+                      <p className="text-gray-600 leading-relaxed">
+                        {feature.description}
+                      </p>
+                    </CardContent>
+                  </Card>
+                )
+              })}
             </div>
           </div>
         </div>
       </section>
 
       {/* How It Works Section */}
-      <section className="py-24 relative z-20">
-        <div className="container mx-auto px-4">
+      <section className="py-24">
+        <div className="container mx-auto px-6">
           <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16 animate-fade-in">
-              <h2 className="text-4xl lg:text-5xl font-bold mb-6 text-studypal-gray-900 font-heading">How It Works</h2>
-              <p className="text-xl text-studypal-gray-500 max-w-3xl mx-auto leading-relaxed">
+            {/* Section Header */}
+            <div className="text-center mb-20 animate-fade-in">
+              <h2 className="text-4xl lg:text-5xl font-bold mb-6 text-gray-900 font-heading">
+                How It Works
+              </h2>
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
                 Four simple steps to transform your study routine
               </p>
             </div>
-            <div className="grid md:grid-cols-4 gap-8">
-              <div className="text-center group">
-                <div className="relative mb-6">
-                  <div className="absolute inset-0 bg-gradient-to-r from-studypal-blue to-studypal-cyan rounded-full blur-lg opacity-20 group-hover:opacity-40 transition-opacity duration-300"></div>
-                  <div className="relative inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-studypal-blue to-studypal-cyan rounded-full group-hover:scale-110 transition-transform duration-300">
-                    <span className="text-white text-xl font-bold">1</span>
+
+            {/* Steps Grid */}
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+              {[
+                {
+                  step: "1",
+                  title: "Tell Us About You",
+                  description: "Share your subjects, available study time, learning preferences, and upcoming exams.",
+                  gradient: "from-blue-500 to-cyan-500"
+                },
+                {
+                  step: "2", 
+                  title: "AI Analysis",
+                  description: "Our AI analyzes your input and identifies the optimal study approach for your unique situation.",
+                  gradient: "from-green-500 to-emerald-500"
+                },
+                {
+                  step: "3",
+                  title: "Get Your Plan", 
+                  description: "Receive a detailed, personalized study schedule with specific tasks and time allocations.",
+                  gradient: "from-amber-500 to-orange-500"
+                },
+                {
+                  step: "4",
+                  title: "Track Progress",
+                  description: "Follow your plan, track your progress, and let AI adjust recommendations as you improve.",
+                  gradient: "from-purple-500 to-pink-500"
+                }
+              ].map((item, index) => (
+                <div key={index} className="text-center group">
+                  <div className="relative mb-8">
+                    <div className={`absolute inset-0 bg-gradient-to-r ${item.gradient} rounded-full blur-xl opacity-20 group-hover:opacity-40 transition-opacity duration-300`}></div>
+                    <div className={`relative inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r ${item.gradient} rounded-full group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
+                      <span className="text-white text-2xl font-bold">{item.step}</span>
+                    </div>
                   </div>
+                  <h3 className="text-xl font-bold mb-4 text-gray-900 font-heading">
+                    {item.title}
+                  </h3>
+                  <p className="text-gray-600 leading-relaxed">
+                    {item.description}
+                  </p>
                 </div>
-                <h3 className="text-xl font-semibold mb-4 text-studypal-gray-900 font-heading">Tell Us About You</h3>
-                <p className="text-studypal-gray-600 leading-relaxed">
-                  Share your subjects, available study time, learning preferences, and upcoming exams.
-                </p>
-              </div>
-              <div className="text-center group">
-                <div className="relative mb-6">
-                  <div className="absolute inset-0 bg-gradient-to-r from-studypal-green to-studypal-green/80 rounded-full blur-lg opacity-20 group-hover:opacity-40 transition-opacity duration-300"></div>
-                  <div className="relative inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-studypal-green to-studypal-green/80 rounded-full group-hover:scale-110 transition-transform duration-300">
-                    <span className="text-white text-xl font-bold">2</span>
-                  </div>
-                </div>
-                <h3 className="text-xl font-semibold mb-4 text-studypal-gray-900 font-heading">AI Analysis</h3>
-                <p className="text-studypal-gray-600 leading-relaxed">
-                  Our AI analyzes your input and identifies the optimal study approach for your unique situation.
-                </p>
-              </div>
-              <div className="text-center group">
-                <div className="relative mb-6">
-                  <div className="absolute inset-0 bg-gradient-to-r from-studypal-amber to-studypal-amber/80 rounded-full blur-lg opacity-20 group-hover:opacity-40 transition-opacity duration-300"></div>
-                  <div className="relative inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-studypal-amber to-studypal-amber/80 rounded-full group-hover:scale-110 transition-transform duration-300">
-                    <span className="text-white text-xl font-bold">3</span>
-                  </div>
-                </div>
-                <h3 className="text-xl font-semibold mb-4 text-studypal-gray-900 font-heading">Get Your Plan</h3>
-                <p className="text-studypal-gray-600 leading-relaxed">
-                  Receive a detailed, personalized study schedule with specific tasks and time allocations.
-                </p>
-              </div>
-              <div className="text-center group">
-                <div className="relative mb-6">
-                  <div className="absolute inset-0 bg-gradient-to-r from-studypal-cyan to-studypal-blue rounded-full blur-lg opacity-20 group-hover:opacity-40 transition-opacity duration-300"></div>
-                  <div className="relative inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-studypal-cyan to-studypal-blue rounded-full group-hover:scale-110 transition-transform duration-300">
-                    <span className="text-white text-xl font-bold">4</span>
-                  </div>
-                </div>
-                <h3 className="text-xl font-semibold mb-4 text-studypal-gray-900 font-heading">Track Progress</h3>
-                <p className="text-studypal-gray-600 leading-relaxed">
-                  Follow your plan, track your progress, and let AI adjust recommendations as you improve.
-                </p>
-              </div>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-20 relative z-20">
-        <div className="container mx-auto px-4">
-          <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-16 animate-fade-in">
-              <h2 className="text-4xl lg:text-5xl font-bold mb-6 text-studypal-gray-900 font-heading">Core Features</h2>
-              <p className="text-xl text-studypal-gray-600 max-w-3xl mx-auto leading-relaxed">
-                Powerful AI-driven tools designed to transform your learning experience
-              </p>
-            </div>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-              <Card className="group text-center border-0 glass-effect hover-lift hover-glow transition-all duration-300">
-                <CardHeader className="pb-4">
-                  <div className="relative mb-6">
-                    <div className="absolute inset-0 bg-gradient-to-r from-studypal-blue to-studypal-cyan rounded-2xl blur-lg opacity-20 group-hover:opacity-40 transition-opacity duration-300"></div>
-                    <div className="relative p-4 bg-gradient-to-br from-studypal-blue to-studypal-cyan rounded-2xl w-fit mx-auto">
-                      <Brain className="h-12 w-12 text-white" />
-                    </div>
-                  </div>
-                  <CardTitle className="text-2xl font-bold mb-3 font-heading">AI Study Plan Generator</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-studypal-gray-500 leading-relaxed">
-                    Creates personalized study schedules based on your learning style and goals.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="group text-center border-0 glass-effect hover-lift hover-glow transition-all duration-300">
-                <CardHeader className="pb-4">
-                  <div className="relative mb-6">
-                    <div className="absolute inset-0 bg-gradient-to-r from-studypal-green to-studypal-green/80 rounded-2xl blur-lg opacity-20 group-hover:opacity-40 transition-opacity duration-300"></div>
-                    <div className="relative p-4 bg-gradient-to-br from-studypal-green to-studypal-green/80 rounded-2xl w-fit mx-auto">
-                      <Calendar className="h-12 w-12 text-white" />
-                    </div>
-                  </div>
-                  <CardTitle className="text-2xl font-bold mb-3 font-heading">Conflict-Free Scheduling</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-studypal-gray-500 leading-relaxed">
-                    Automatically avoids scheduling conflicts and optimizes your available time.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="group text-center border-0 glass-effect hover-lift hover-glow transition-all duration-300">
-                <CardHeader className="pb-4">
-                  <div className="relative mb-6">
-                    <div className="absolute inset-0 bg-gradient-to-r from-studypal-amber to-studypal-amber/80 rounded-2xl blur-lg opacity-20 group-hover:opacity-40 transition-opacity duration-300"></div>
-                    <div className="relative p-4 bg-gradient-to-br from-studypal-amber to-studypal-amber/80 rounded-2xl w-fit mx-auto">
-                      <Target className="h-12 w-12 text-white" />
-                    </div>
-                  </div>
-                  <CardTitle className="text-2xl font-bold mb-3 font-heading">Weak Area Focus</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-studypal-gray-500 leading-relaxed">
-                    Identifies and prioritizes subjects or topics that need extra attention.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="group text-center border-0 glass-effect hover-lift hover-glow transition-all duration-300">
-                <CardHeader className="pb-4">
-                  <div className="relative mb-6">
-                    <div className="absolute inset-0 bg-gradient-to-r from-studypal-cyan to-studypal-blue rounded-2xl blur-lg opacity-20 group-hover:opacity-40 transition-opacity duration-300"></div>
-                    <div className="relative p-4 bg-gradient-to-br from-studypal-cyan to-studypal-blue rounded-2xl w-fit mx-auto">
-                      <Star className="h-12 w-12 text-white" />
-                    </div>
-                  </div>
-                  <CardTitle className="text-2xl font-bold mb-3 font-heading">Progress Tracking</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-studypal-gray-500 leading-relaxed">
-                    Monitor your study progress and receive insights on your learning patterns.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="group text-center border-0 glass-effect hover-lift hover-glow transition-all duration-300">
-                <CardHeader className="pb-4">
-                  <div className="relative mb-6">
-                    <div className="absolute inset-0 bg-gradient-to-r from-studypal-blue to-studypal-cyan rounded-2xl blur-lg opacity-20 group-hover:opacity-40 transition-opacity duration-300"></div>
-                    <div className="relative p-4 bg-gradient-to-br from-studypal-blue to-studypal-cyan rounded-2xl w-fit mx-auto">
-                      <Users className="h-12 w-12 text-white" />
-                    </div>
-                  </div>
-                  <CardTitle className="text-2xl font-bold mb-3 font-heading">24/7 AI Assistant</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-studypal-gray-500 leading-relaxed">
-                    Get instant help and study tips whenever you need them.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="group text-center border-0 glass-effect hover-lift hover-glow transition-all duration-300">
-                <CardHeader className="pb-4">
-                  <div className="relative mb-6">
-                    <div className="absolute inset-0 bg-gradient-to-r from-studypal-green to-studypal-green/80 rounded-2xl blur-lg opacity-20 group-hover:opacity-40 transition-opacity duration-300"></div>
-                    <div className="relative p-4 bg-gradient-to-br from-studypal-green to-studypal-green/80 rounded-2xl w-fit mx-auto">
-                      <Zap className="h-12 w-12 text-white" />
-                    </div>
-                  </div>
-                  <CardTitle className="text-2xl font-bold mb-3 font-heading">Adaptive Learning</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-studypal-gray-500 leading-relaxed">
-                    Plans automatically adjust based on your progress and changing needs.
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* Call to Action Section */}
-      <section className="py-24 bg-gradient-to-br from-studypal-blue via-studypal-cyan to-studypal-blue relative z-20 overflow-hidden">
+      <section className="py-24 bg-gradient-to-br from-blue-600 via-cyan-500 to-blue-600 relative overflow-hidden">
         <div className="absolute inset-0 bg-black/10"></div>
-        <div className="container mx-auto px-4 text-center relative z-10">
+        <div className="container mx-auto px-6 text-center relative z-10">
           <div className="max-w-4xl mx-auto">
-            <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 lg:p-12 border border-white/20">
-              <h2 className="text-4xl lg:text-5xl font-bold text-white mb-8 font-heading">
+            <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 lg:p-16 border border-white/20 shadow-2xl">
+              <h2 className="text-4xl lg:text-6xl font-bold text-white mb-8 font-heading">
                 Ready to Transform Your Learning?
               </h2>
-              <p className="text-xl text-white/95 mb-10 leading-relaxed">
-                Join thousands of students who have revolutionized their study habits with AI-powered personalized plans. 
-                Start your journey to academic success today.
+              <p className="text-xl lg:text-2xl text-white/95 mb-12 leading-relaxed max-w-3xl mx-auto">
+                Start your journey to academic success with AI-powered personalized study plans 
+                designed to help you learn more efficiently and effectively.
               </p>
               
-              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                <Button asChild size="lg" className="text-lg px-10 py-6 bg-studypal-amber hover:bg-studypal-amber/90 text-studypal-gray-900 font-bold shadow-xl btn-enhanced font-mono-ui transform hover:scale-105 transition-all duration-300">
+              <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+                <Button asChild size="lg" className="text-lg px-12 py-6 bg-white text-blue-600 hover:bg-gray-100 font-bold shadow-xl btn-enhanced transform hover:scale-105 transition-all duration-300 rounded-2xl">
                   <Link href="/study-assistant">
                     Create Your Study Plan <ArrowRight className="ml-2 h-5 w-5" />
                   </Link>
                 </Button>
                 
-                <Button asChild variant="outline" size="lg" className="text-lg px-10 py-6 bg-white/10 border-white/30 text-white hover:bg-white/20 font-semibold backdrop-blur-sm">
+                <Button asChild variant="outline" size="lg" className="text-lg px-12 py-6 bg-white/10 border-white/30 text-white hover:bg-white/20 font-semibold backdrop-blur-sm rounded-2xl">
                   <Link href="/examples">
-                    View Showcase <Star className="ml-2 h-5 w-5" />
+                    View Examples <Star className="ml-2 h-5 w-5" />
                   </Link>
                 </Button>
-              </div>
-              
-              <div className="mt-8 flex justify-center items-center space-x-8 text-white/80">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-white">10,000+</div>
-                  <div className="text-sm">Students Helped</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-white">95%</div>
-                  <div className="text-sm">Success Rate</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-white">24/7</div>
-                  <div className="text-sm">AI Support</div>
-                </div>
               </div>
             </div>
           </div>

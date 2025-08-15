@@ -182,11 +182,11 @@ export default function Home() {
                     <Target className="h-12 w-12 text-white" />
                   </div>
                 </div>
-                <CardTitle className="text-2xl font-bold mb-3 font-heading">Weak Area Focus</CardTitle>
+                <CardTitle className="text-2xl font-bold mb-3 font-heading">Subject Focus</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-studypal-gray-500 leading-relaxed">
-                  Puts extra emphasis on topics where you struggle.
+                  Focuses on subjects you want to prioritize and master.
                 </p>
               </CardContent>
             </Card>

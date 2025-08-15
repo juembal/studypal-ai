@@ -23,6 +23,10 @@ const ibmPlexMono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: 'StudyPal - Your AI-Powered Study Companion',
   description: 'Generate personalized study plans, revision schedules, and learning tips powered by AI',
+  icons: {
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
+  },
 }
 
 export default function RootLayout({
