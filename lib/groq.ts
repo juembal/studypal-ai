@@ -1404,7 +1404,7 @@ function createFallbackSessions(request: StudyPlanRequest, existingScheduleConte
 }
 
 function createFallbackFlashcards(request: StudyPlanRequest) {
-  const flashcards = []
+  const flashcards: any[] = []
   let cardId = 1
   
   // If specific topics are provided, create flashcards for each topic
