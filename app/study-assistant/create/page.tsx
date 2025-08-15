@@ -129,19 +129,11 @@ export default function CreateStudyPlan() {
       const existingScheduleContext = ScheduleManager.generateExistingScheduleContext()
       console.log('Existing schedule context:', existingScheduleContext)
       
-      console.log('About to make API call to /api/generate-plan')
+      console.log('About to make streaming API call to /api/generate-plan-stream')
       console.log('Request payload:', { ...formData, existingScheduleContext })
       
-      const response = await axios.post('/api/generate-plan', { 
-        ...formData, 
-        existingScheduleContext 
-      })
-      
-      console.log('API response received:', response)
-      console.log('Response status:', response.status)
-      console.log('Response data:', response.data)
-      
-      const plan = response.data
+      // Use streaming API for real-time progress updates
+      const plan = await generateStudyPlanWithProgress({ ...formData, existingScheduleContext })
       console.log('Generated plan received:', plan)
       
       // Check if fallback was used and show appropriate message
