@@ -1409,9 +1409,10 @@ function createFallbackFlashcards(request: StudyPlanRequest) {
   
   // If specific topics are provided, create flashcards for each topic
   if (request.specificTopics && request.specificTopics.length > 0) {
-    request.specificTopics.forEach((topic, topicIndex) => {
+    const topics = request.specificTopics // Store in local variable for type safety
+    topics.forEach((topic, topicIndex) => {
       // Create 3-5 flashcards per topic
-      const cardsPerTopic = Math.min(5, Math.max(3, Math.floor(25 / request.specificTopics.length)))
+      const cardsPerTopic = Math.min(5, Math.max(3, Math.floor(25 / topics.length)))
       
       for (let i = 0; i < cardsPerTopic; i++) {
         const difficulties = ['easy', 'medium', 'hard']
