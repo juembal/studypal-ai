@@ -20,6 +20,7 @@ export interface StudySession {
   id: string
   day: string
   date: string
+  timeSlot: string
   subject: string
   topic: string
   duration: number
