@@ -146,7 +146,7 @@ export async function generateStudyPlan(
             'Review key concepts the night before, avoid cramming new material',
             'Start with easier questions to build confidence'
           ],
-          onlineResources: generateOnlineResources(request.subjects, request.specificTopics),
+          onlineResources: generateOnlineResources(request.subjects, request.specificTopics, request.goals, request.studyLevel, request.difficulty),
           progress: {
             completedSessions: 0,
             totalSessions: 0,
@@ -451,7 +451,7 @@ function generateFallbackStudyPlan(request: StudyPlanRequest, existingScheduleCo
       'Plan your time allocation for each section',
       'Use elimination strategies for multiple-choice questions'
     ],
-    onlineResources: generateOnlineResources(request.subjects, request.specificTopics),
+    onlineResources: generateOnlineResources(request.subjects, request.specificTopics, request.goals, request.studyLevel, request.difficulty),
     progress: {
       completedSessions: 0,
       totalSessions: 0,
@@ -472,7 +472,7 @@ function generateFallbackStudyPlan(request: StudyPlanRequest, existingScheduleCo
   return fallbackPlan
 }
 
-function generateOnlineResources(subjects: string[], specificTopics?: string[]) {
+function generateOnlineResources(subjects: string[], specificTopics?: string[], goals?: string, studyLevel?: string, difficulty?: string) {
   const selectedResources: any[] = []
   
   // Enhanced resource templates with more specific and accurate resources
@@ -741,63 +741,291 @@ function generateOnlineResources(subjects: string[], specificTopics?: string[]) 
     }
   ]
   
+  // Enhanced topic-specific resource matching
+  const getTopicSpecificResources = (topic: string, subject: string) => {
+    const topicLower = topic.toLowerCase()
+    const subjectLower = subject.toLowerCase()
+    
+    // Math-specific topic resources
+    if (subjectLower.includes('math') || subjectLower.includes('algebra') || subjectLower.includes('calculus')) {
+      if (topicLower.includes('quadratic') || topicLower.includes('parabola')) {
+        return [{
+          title: 'Khan Academy: Quadratic Functions & Equations',
+          url: 'https://www.khanacademy.org/math/algebra/x2f8bb11595b61c86:quadratic-functions-equations',
+          type: 'video',
+          subject,
+          topic: 'Quadratic equations and parabolas',
+          description: 'Complete guide to solving quadratic equations, graphing parabolas, and understanding vertex form',
+          difficulty: 'intermediate',
+          estimatedTime: '30-45 minutes per lesson',
+          isFree: true
+        }]
+      } else if (topicLower.includes('linear') || topicLower.includes('slope')) {
+        return [{
+          title: 'Khan Academy: Linear Functions',
+          url: 'https://www.khanacademy.org/math/algebra-basics/alg-basics-graphing-lines-and-slope',
+          type: 'video',
+          subject,
+          topic: 'Linear equations and slope',
+          description: 'Master linear equations, slope-intercept form, and graphing lines',
+          difficulty: 'beginner',
+          estimatedTime: '25-40 minutes per lesson',
+          isFree: true
+        }]
+      } else if (topicLower.includes('derivative') || topicLower.includes('differentiation')) {
+        return [{
+          title: 'Khan Academy: Derivatives Introduction',
+          url: 'https://www.khanacademy.org/math/calculus-1/cs1-derivatives-definition-and-basic-rules',
+          type: 'video',
+          subject,
+          topic: 'Derivatives and differentiation',
+          description: 'Learn derivatives, differentiation rules, and applications to real-world problems',
+          difficulty: 'advanced',
+          estimatedTime: '45-60 minutes per lesson',
+          isFree: true
+        }]
+      } else if (topicLower.includes('integral') || topicLower.includes('integration')) {
+        return [{
+          title: 'Khan Academy: Integrals',
+          url: 'https://www.khanacademy.org/math/calculus-1/cs1-integrals-definition-and-basic-rules',
+          type: 'video',
+          subject,
+          topic: 'Integration and antiderivatives',
+          description: 'Master integration techniques, fundamental theorem of calculus, and area calculations',
+          difficulty: 'advanced',
+          estimatedTime: '50-75 minutes per lesson',
+          isFree: true
+        }]
+      } else if (topicLower.includes('polynomial') || topicLower.includes('factor')) {
+        return [{
+          title: 'Khan Academy: Polynomial Factorization',
+          url: 'https://www.khanacademy.org/math/algebra2/x2ec2f6f830c9fb89:poly-factor',
+          type: 'video',
+          subject,
+          topic: 'Polynomial operations and factoring',
+          description: 'Learn to factor polynomials, solve polynomial equations, and understand polynomial behavior',
+          difficulty: 'intermediate',
+          estimatedTime: '35-50 minutes per lesson',
+          isFree: true
+        }]
+      } else if (topicLower.includes('trigonometry') || topicLower.includes('trig')) {
+        return [{
+          title: 'Khan Academy: Trigonometry',
+          url: 'https://www.khanacademy.org/math/trigonometry',
+          type: 'video',
+          subject,
+          topic: 'Trigonometric functions and identities',
+          description: 'Complete trigonometry course covering sine, cosine, tangent, and trigonometric identities',
+          difficulty: 'intermediate',
+          estimatedTime: '40-60 minutes per lesson',
+          isFree: true
+        }]
+      }
+    }
+    
+    // Physics-specific topic resources
+    else if (subjectLower.includes('physics')) {
+      if (topicLower.includes('mechanic') || topicLower.includes('motion') || topicLower.includes('force')) {
+        return [{
+          title: 'Khan Academy: Forces and Newton\'s Laws',
+          url: 'https://www.khanacademy.org/science/physics/forces-newtons-laws',
+          type: 'video',
+          subject,
+          topic: 'Classical mechanics and forces',
+          description: 'Master Newton\'s laws, force analysis, friction, and motion in one and two dimensions',
+          difficulty: 'intermediate',
+          estimatedTime: '35-55 minutes per lesson',
+          isFree: true
+        }]
+      } else if (topicLower.includes('electric') || topicLower.includes('circuit')) {
+        return [{
+          title: 'Khan Academy: Circuits',
+          url: 'https://www.khanacademy.org/science/physics/circuits-topic',
+          type: 'video',
+          subject,
+          topic: 'Electric circuits and current',
+          description: 'Learn about electric current, voltage, resistance, and circuit analysis',
+          difficulty: 'intermediate',
+          estimatedTime: '40-60 minutes per lesson',
+          isFree: true
+        }]
+      } else if (topicLower.includes('wave') || topicLower.includes('sound') || topicLower.includes('light')) {
+        return [{
+          title: 'Khan Academy: Waves and Sound',
+          url: 'https://www.khanacademy.org/science/physics/mechanical-waves-and-sound',
+          type: 'video',
+          subject,
+          topic: 'Waves, sound, and optics',
+          description: 'Understand wave properties, sound waves, interference, and basic optics',
+          difficulty: 'intermediate',
+          estimatedTime: '30-50 minutes per lesson',
+          isFree: true
+        }]
+      } else if (topicLower.includes('energy') || topicLower.includes('work')) {
+        return [{
+          title: 'Khan Academy: Work and Energy',
+          url: 'https://www.khanacademy.org/science/physics/work-and-energy',
+          type: 'video',
+          subject,
+          topic: 'Work, energy, and power',
+          description: 'Master concepts of work, kinetic energy, potential energy, and conservation of energy',
+          difficulty: 'intermediate',
+          estimatedTime: '35-55 minutes per lesson',
+          isFree: true
+        }]
+      }
+    }
+    
+    // Chemistry-specific topic resources
+    else if (subjectLower.includes('chemistry')) {
+      if (topicLower.includes('organic') || topicLower.includes('carbon')) {
+        return [{
+          title: 'Khan Academy: Organic Chemistry',
+          url: 'https://www.khanacademy.org/science/organic-chemistry',
+          type: 'video',
+          subject,
+          topic: 'Organic chemistry fundamentals',
+          description: 'Learn organic molecule structure, nomenclature, reactions, and mechanisms',
+          difficulty: 'advanced',
+          estimatedTime: '45-75 minutes per lesson',
+          isFree: true
+        }]
+      } else if (topicLower.includes('acid') || topicLower.includes('base') || topicLower.includes('ph')) {
+        return [{
+          title: 'Khan Academy: Acids and Bases',
+          url: 'https://www.khanacademy.org/science/chemistry/acids-and-bases-topic',
+          type: 'video',
+          subject,
+          topic: 'Acids, bases, and pH',
+          description: 'Understand acid-base reactions, pH calculations, and buffer systems',
+          difficulty: 'intermediate',
+          estimatedTime: '30-50 minutes per lesson',
+          isFree: true
+        }]
+      } else if (topicLower.includes('bond') || topicLower.includes('molecular')) {
+        return [{
+          title: 'Khan Academy: Chemical Bonds',
+          url: 'https://www.khanacademy.org/science/chemistry/chemical-bonds',
+          type: 'video',
+          subject,
+          topic: 'Chemical bonding and molecular structure',
+          description: 'Learn about ionic bonds, covalent bonds, and molecular geometry',
+          difficulty: 'intermediate',
+          estimatedTime: '35-55 minutes per lesson',
+          isFree: true
+        }]
+      } else if (topicLower.includes('stoichiometry') || topicLower.includes('mole')) {
+        return [{
+          title: 'Khan Academy: Stoichiometry',
+          url: 'https://www.khanacademy.org/science/chemistry/chemical-reactions-stoichiometry',
+          type: 'video',
+          subject,
+          topic: 'Stoichiometry and chemical calculations',
+          description: 'Master mole calculations, limiting reagents, and chemical equation balancing',
+          difficulty: 'intermediate',
+          estimatedTime: '40-60 minutes per lesson',
+          isFree: true
+        }]
+      }
+    }
+    
+    // Biology-specific topic resources
+    else if (subjectLower.includes('biology')) {
+      if (topicLower.includes('cell') || topicLower.includes('cellular')) {
+        return [{
+          title: 'Khan Academy: Cell Structure and Function',
+          url: 'https://www.khanacademy.org/science/biology/structure-of-a-cell',
+          type: 'video',
+          subject,
+          topic: 'Cell biology and organelles',
+          description: 'Learn about cell structure, organelles, membrane transport, and cellular processes',
+          difficulty: 'intermediate',
+          estimatedTime: '30-50 minutes per lesson',
+          isFree: true
+        }]
+      } else if (topicLower.includes('dna') || topicLower.includes('genetic') || topicLower.includes('gene')) {
+        return [{
+          title: 'Khan Academy: DNA and Gene Expression',
+          url: 'https://www.khanacademy.org/science/biology/gene-expression-central-dogma',
+          type: 'video',
+          subject,
+          topic: 'Genetics and molecular biology',
+          description: 'Understand DNA structure, replication, transcription, translation, and gene regulation',
+          difficulty: 'advanced',
+          estimatedTime: '40-65 minutes per lesson',
+          isFree: true
+        }]
+      } else if (topicLower.includes('evolution') || topicLower.includes('natural selection')) {
+        return [{
+          title: 'Khan Academy: Evolution and Natural Selection',
+          url: 'https://www.khanacademy.org/science/biology/her/evolution-and-natural-selection',
+          type: 'video',
+          subject,
+          topic: 'Evolution and natural selection',
+          description: 'Learn about evolutionary theory, natural selection, and evidence for evolution',
+          difficulty: 'intermediate',
+          estimatedTime: '35-55 minutes per lesson',
+          isFree: true
+        }]
+      } else if (topicLower.includes('ecology') || topicLower.includes('ecosystem')) {
+        return [{
+          title: 'Khan Academy: Ecology',
+          url: 'https://www.khanacademy.org/science/biology/ecology',
+          type: 'video',
+          subject,
+          topic: 'Ecology and ecosystems',
+          description: 'Study population dynamics, community interactions, and ecosystem energy flow',
+          difficulty: 'intermediate',
+          estimatedTime: '30-50 minutes per lesson',
+          isFree: true
+        }]
+      }
+    }
+    
+    return [] // Return empty if no specific match found
+  }
+
   // Generate resources based on subjects and specific topics
   subjects.forEach(subject => {
     const subjectLower = subject.toLowerCase()
     let subjectResources: any[] = []
     
-    // Match subject to resource templates
-    if (subjectLower.includes('math') || subjectLower.includes('algebra') || subjectLower.includes('calculus')) {
-      // Check for specific math topics
-      if (specificTopics) {
-        specificTopics.forEach(topic => {
-          const topicLower = topic.toLowerCase()
-          if (topicLower.includes('quadratic') && resourceTemplates.math.quadratic) {
-            subjectResources.push(...resourceTemplates.math.quadratic.map(r => ({ ...r, subject })))
-          } else if (topicLower.includes('algebra') && resourceTemplates.math.algebra) {
-            subjectResources.push(...resourceTemplates.math.algebra.map(r => ({ ...r, subject })))
-          } else if (topicLower.includes('calculus') && resourceTemplates.math.calculus) {
-            subjectResources.push(...resourceTemplates.math.calculus.map(r => ({ ...r, subject })))
-          }
+    // First, try to get topic-specific resources
+    if (specificTopics && specificTopics.length > 0) {
+      specificTopics.forEach(topic => {
+        const topicResources = getTopicSpecificResources(topic, subject)
+        subjectResources.push(...topicResources)
+      })
+    }
+    
+    // If no topic-specific resources found, use subject-based resources
+    if (subjectResources.length === 0) {
+      if (subjectLower.includes('math') || subjectLower.includes('algebra') || subjectLower.includes('calculus')) {
+        subjectResources.push(...resourceTemplates.math.general.map(r => ({ ...r, subject })))
+      } else if (subjectLower.includes('physics')) {
+        subjectResources.push(...resourceTemplates.physics.general.map(r => ({ ...r, subject })))
+      } else if (subjectLower.includes('chemistry')) {
+        subjectResources.push(...resourceTemplates.chemistry.general.map(r => ({ ...r, subject })))
+      } else if (subjectLower.includes('biology')) {
+        subjectResources.push(...resourceTemplates.biology.general.map(r => ({ ...r, subject })))
+      } else if (subjectLower.includes('history')) {
+        subjectResources.push(...resourceTemplates.history.general.map(r => ({ ...r, subject })))
+      } else if (subjectLower.includes('english') || subjectLower.includes('literature')) {
+        subjectResources.push(...resourceTemplates.english.general.map(r => ({ ...r, subject })))
+      } else {
+        // Generic fallback for other subjects
+        subjectResources.push({
+          title: `Khan Academy: ${subject}`,
+          url: `https://www.khanacademy.org/search?search_again=1&page_search_query=${encodeURIComponent(subject)}`,
+          type: 'video',
+          subject,
+          topic: `${subject} fundamentals`,
+          description: `Educational videos and practice exercises for ${subject}`,
+          difficulty: 'beginner',
+          estimatedTime: '20-45 minutes per lesson',
+          isFree: true
         })
       }
-      // Add general math resources if no specific ones or as backup
-      if (subjectResources.length === 0) {
-        subjectResources.push(...resourceTemplates.math.general.map(r => ({ ...r, subject })))
-      }
-    } else if (subjectLower.includes('physics')) {
-      subjectResources.push(...resourceTemplates.physics.general.map(r => ({ ...r, subject })))
-      // Add specific physics resources based on topics
-      if (specificTopics?.some(topic => topic.toLowerCase().includes('mechanic'))) {
-        subjectResources.push(...resourceTemplates.physics.mechanics.map(r => ({ ...r, subject })))
-      }
-    } else if (subjectLower.includes('chemistry')) {
-      subjectResources.push(...resourceTemplates.chemistry.general.map(r => ({ ...r, subject })))
-      if (specificTopics?.some(topic => topic.toLowerCase().includes('organic'))) {
-        subjectResources.push(...resourceTemplates.chemistry.organic.map(r => ({ ...r, subject })))
-      }
-    } else if (subjectLower.includes('biology')) {
-      subjectResources.push(...resourceTemplates.biology.general.map(r => ({ ...r, subject })))
-      if (specificTopics?.some(topic => topic.toLowerCase().includes('molecular'))) {
-        subjectResources.push(...resourceTemplates.biology.molecular.map(r => ({ ...r, subject })))
-      }
-    } else if (subjectLower.includes('history')) {
-      subjectResources.push(...resourceTemplates.history.general.map(r => ({ ...r, subject })))
-    } else if (subjectLower.includes('english') || subjectLower.includes('literature')) {
-      subjectResources.push(...resourceTemplates.english.general.map(r => ({ ...r, subject })))
-    } else {
-      // Generic fallback for other subjects
-      subjectResources.push({
-        title: `Khan Academy: ${subject}`,
-        url: `https://www.khanacademy.org/search?search_again=1&page_search_query=${encodeURIComponent(subject)}`,
-        type: 'video',
-        subject,
-        topic: `${subject} fundamentals`,
-        description: `Educational videos and practice exercises for ${subject}`,
-        difficulty: 'beginner',
-        estimatedTime: '20-45 minutes per lesson',
-        isFree: true
-      })
     }
     
     // Add the best 1-2 resources per subject to avoid overcrowding
