@@ -41,6 +41,37 @@ export interface StudyPlan {
   targetDate: string
   goals?: string
   sessions: StudySession[]
+  weeklySchedule?: {
+    [day: string]: {
+      subjects: Array<{
+        subject: string
+        duration: number
+        timeSlot: string
+        focus: string
+        priority: string
+      }>
+      totalHours: number
+    }
+  }
+  revisionSchedule?: Array<{
+    subject: string
+    date: string
+    topics: string[]
+    duration: number
+  }>
+  learningTips?: string[]
+  examStrategy?: string[]
+  onlineResources?: Array<{
+    title: string
+    url: string
+    type: string
+    subject: string
+    topic: string
+    description: string
+    difficulty: string
+    estimatedTime: string
+    isFree: boolean
+  }>
   flashcards?: Flashcard[]
   progress?: {
     completedSessions: number

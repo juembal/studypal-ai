@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { generateStudyPlan, StudyPlanRequest } from '@/lib/groq'
+import { generateStudyPlan } from '@/lib/groq'
+import { StudyPlanRequest } from '@/lib/types'
 
 export async function POST(request: NextRequest) {
   try {

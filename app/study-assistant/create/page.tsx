@@ -311,7 +311,23 @@ SIMPLE INSTRUCTION: Create a study schedule using ONLY the available time slots 
           localStorage.setItem('studypal_plans', JSON.stringify(updatedPlans))
         }
 
-        setStudyPlan(manualPlan)
+        // Convert partial plan to complete StudyPlan
+        const completePlan: StudyPlan = {
+          id: Date.now().toString(),
+          name: `Study Plan for ${lastFormData.subjects.join(', ')}`,
+          subjects: lastFormData.subjects,
+          studyLevel: lastFormData.studyLevel,
+          totalHours: lastFormData.dailyHours * 7, // Estimate weekly hours
+          dailyHours: lastFormData.dailyHours,
+          startDate: new Date().toISOString().split('T')[0],
+          targetDate: lastFormData.targetDate,
+          goals: lastFormData.goals,
+          sessions: [],
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          ...manualPlan
+        }
+        setStudyPlan(completePlan)
         setShowPlanCard(true)
         return
       }

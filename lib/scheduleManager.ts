@@ -1,4 +1,4 @@
-import { StudyPlan, StudyPlanRequest } from './types'
+import { StudyPlan, StudyPlanRequest, StudySession } from './types'
 
 export interface TimeSlot {
   day: string
@@ -50,16 +50,22 @@ export class ScheduleManager {
     return { start: startMinutes, end: endMinutes }
   }
 
-  static extractTimeSlots(studyPlan: any, planId: string, planName: string): TimeSlot[] {
+  static extractTimeSlots(studyPlan: StudyPlan, planId: string, planName: string): TimeSlot[] {
     const timeSlots: TimeSlot[] = []
     
     // Handle both weeklySchedule and sessions structures
     if (!studyPlan) return timeSlots
     
     if (studyPlan.weeklySchedule && typeof studyPlan.weeklySchedule === 'object') {
-      Object.entries(studyPlan.weeklySchedule).forEach(([day, schedule]: [string, any]) => {
+      Object.entries(studyPlan.weeklySchedule).forEach(([day, schedule]: [string, { subjects: Array<{ subject: string, duration: number, timeSlot: string, focus: string, priority: string }>, totalHours: number }]) => {
       if (schedule.subjects && Array.isArray(schedule.subjects)) {
-        schedule.subjects.forEach(subject => {
+        schedule.subjects.forEach((subject: {
+          subject: string
+          duration: number
+          timeSlot: string
+          focus: string
+          priority: string
+        }) => {
           // Check if subject exists and has a valid timeSlot
           if (!subject || !subject.timeSlot || typeof subject.timeSlot !== 'string') {
             console.log('Skipping invalid subject:', subject)
@@ -73,7 +79,7 @@ export class ScheduleManager {
               day,
               startTime: timeParts[0] || '',
               endTime: timeParts[1] || '',
-              subject: subject.subject || subject.name || 'Unknown Subject',
+              subject: subject.subject || 'Unknown Subject',
               planId,
               planName
             })
@@ -83,7 +89,7 @@ export class ScheduleManager {
     })
     } else if (studyPlan.sessions && Array.isArray(studyPlan.sessions)) {
       // Handle sessions structure
-      studyPlan.sessions.forEach((session: any) => {
+      studyPlan.sessions.forEach((session: StudySession) => {
         if (session && session.day && session.date) {
           timeSlots.push({
             day: session.day,
@@ -105,7 +111,7 @@ export class ScheduleManager {
       const savedPlans = JSON.parse(localStorage.getItem('studypal_plans') || '[]')
       const allTimeSlots: TimeSlot[] = []
       
-      savedPlans.forEach((plan: any) => {
+      savedPlans.forEach((plan: { id?: string, name?: string, fullPlan?: StudyPlan, status?: string }) => {
         try {
           if (plan.fullPlan && plan.status !== 'completed') {
             const timeSlots = this.extractTimeSlots(plan.fullPlan, plan.id || 'unknown', plan.name || 'Unknown Plan')
@@ -228,10 +234,10 @@ export class ScheduleManager {
     return availableSlots
   }
 
-  static createManualConflictFreePlan(formData: any, availableSlots: { day: string, timeRange: string }[]): any {
+  static createManualConflictFreePlan(formData: StudyPlanRequest, availableSlots: { day: string, timeRange: string }[]): Partial<StudyPlan> {
     const subjects = formData.subjects
     const dailyHours = formData.dailyHours
-    const weeklySchedule: any = {}
+    const weeklySchedule: { [day: string]: { subjects: Array<{ subject: string, duration: number, timeSlot: string, focus: string, priority: string }>, totalHours: number } } = {}
     
     // Initialize all days
     const allDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
@@ -287,12 +293,13 @@ export class ScheduleManager {
         'Use past papers and mock tests',
         'Maintain a consistent study routine'
       ],
-      flashcards: subjects.flatMap((subject: string) => [
+      flashcards: subjects.flatMap((subject: string, subjectIndex: number) => [
         {
+          id: `flashcard-${subjectIndex}-${Date.now()}`,
           subject,
           question: `What are the key concepts in ${subject}?`,
           answer: `Review the fundamental principles and core topics of ${subject}`,
-          difficulty: 'medium'
+          difficulty: 'medium' as const
         }
       ]),
       onlineResources: subjects.map((subject: string) => ({

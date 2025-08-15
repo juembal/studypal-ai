@@ -23,7 +23,7 @@ export default function StudyPlanForm({ onSubmit, isLoading }: StudyPlanFormProp
   const [studyTimePreference, setStudyTimePreference] = useState<string>('')
   const [dailyHours, setDailyHours] = useState<number[]>([4])
   const [targetDate, setTargetDate] = useState<string>('')
-  const [studyLevel, setStudyLevel] = useState<string>('undergraduate')
+  const [studyLevel, setStudyLevel] = useState<'high-school' | 'undergraduate' | 'graduate' | 'professional'>('undergraduate')
   const [includeWeekends, setIncludeWeekends] = useState<string>('weekdays')
 
   // Generate quick date options
@@ -285,7 +285,7 @@ export default function StudyPlanForm({ onSubmit, isLoading }: StudyPlanFormProp
               <select
                 id="studyLevel"
                 value={studyLevel}
-                onChange={(e) => setStudyLevel(e.target.value)}
+                onChange={(e) => setStudyLevel(e.target.value as 'high-school' | 'undergraduate' | 'graduate' | 'professional')}
                 className="flex h-12 w-full rounded-md border-2 border-input bg-background px-4 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-studypal-blue/50 focus-visible:ring-offset-2 transition-colors"
                 required
               >

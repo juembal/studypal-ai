@@ -245,5 +245,4 @@ ${contextInfo}
 Respond with ONLY the JSON object, no additional text or formatting.`
 }
 
-// Export types for compatibility
-export { StudyPlan, StudyPlanRequest, StudySession, Flashcard } from './types'
+// Types are now imported directly from './types' where needed
