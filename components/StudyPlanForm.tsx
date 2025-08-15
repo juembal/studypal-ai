@@ -179,9 +179,9 @@ export default function StudyPlanForm({ onSubmit, isLoading }: StudyPlanFormProp
   }
 
   return (
-    <div className="w-full max-w-2xl mx-auto animate-fade-in px-4">
+    <div className="w-full max-w-2xl mx-auto animate-fade-in">
       <Card className="glass-effect border-0 shadow-glow hover:shadow-glow-lg transition-all duration-500 hover-lift">
-        <CardHeader className="text-center pb-6 sm:pb-8 px-4 sm:px-6">
+        <CardHeader className="text-center pb-8">
           <div className="flex justify-center mb-6">
             <div className="p-3 bg-gradient-to-br from-studypal-blue to-studypal-cyan rounded-2xl shadow-lg">
               <Brain className="h-8 w-8 text-white" />
@@ -194,8 +194,8 @@ export default function StudyPlanForm({ onSubmit, isLoading }: StudyPlanFormProp
             Let's get started with your study preferences
           </CardDescription>
         </CardHeader>
-        <CardContent className="px-4 sm:px-6 lg:px-8">
-          <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
+        <CardContent className="px-8">
+          <form onSubmit={handleSubmit} className="space-y-8">
             {/* Subjects */}
             <div className="space-y-3">
               <Label htmlFor="subjects" className="text-base font-semibold font-heading">Subjects</Label>
@@ -205,7 +205,7 @@ export default function StudyPlanForm({ onSubmit, isLoading }: StudyPlanFormProp
                   value={subjectsInput}
                   onChange={(e) => setSubjectsInput(e.target.value)}
                   placeholder="Enter subjects separated by commas (e.g., Math, Biology, History)"
-                  className="text-sm sm:text-base h-10 sm:h-12 px-3 sm:px-4 border-2 focus:border-studypal-blue/50 transition-colors"
+                  className="text-base h-12 px-4 border-2 focus:border-studypal-blue/50 transition-colors"
                   required
                 />
                 <p className="text-sm text-gray-500">
@@ -455,13 +455,13 @@ export default function StudyPlanForm({ onSubmit, isLoading }: StudyPlanFormProp
               >
                 {isLoading ? (
                   <>
-                    <BookOpen className="mr-1 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5 animate-pulse" />
-                    <span className="text-sm sm:text-lg">Generating Your Study Plan...</span>
+                    <BookOpen className="mr-2 h-5 w-5 animate-pulse" />
+                    <span className="text-lg">Generating Your Study Plan...</span>
                   </>
                 ) : (
                   <>
-                    <BookOpen className="mr-1 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                    <span className="text-sm sm:text-lg font-semibold">Generate My Study Plan</span>
+                    <BookOpen className="mr-2 h-5 w-5" />
+                    <span className="text-lg font-semibold">Generate My Study Plan</span>
                     {subjectsInput.trim() && targetDate && (
                       <span className="ml-2 text-sm opacity-90">
                         ({subjectsInput.split(',').filter(s => s.trim()).length} subject{subjectsInput.split(',').filter(s => s.trim()).length !== 1 ? 's' : ''})

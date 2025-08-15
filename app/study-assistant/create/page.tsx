@@ -625,10 +625,10 @@ SIMPLE INSTRUCTION: Create a study schedule using ONLY the available time slots 
           </Link>
         </Button>
         
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-3 sm:mb-4 font-space-grotesk px-2">
+        <h1 className="text-4xl font-bold text-gray-900 mb-4 font-space-grotesk">
           Build Your Perfect <span className="bg-gradient-to-r from-studypal-blue to-studypal-cyan bg-clip-text text-transparent">Study Plan</span>
         </h1>
-        <p className="text-sm sm:text-base lg:text-lg text-gray-600 max-w-2xl mx-auto mb-6 sm:mb-8 px-4">
+        <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-8">
           Share your study needs and receive personalized AI recommendations designed for your subjects, schedule, and academic goals
         </p>
 
@@ -715,13 +715,13 @@ SIMPLE INSTRUCTION: Create a study schedule using ONLY the available time slots 
 
       {/* Progress Notification - Shows retry status */}
       {progressMessage && isRetrying && (
-        <div className="max-w-2xl mx-auto mb-4 sm:mb-6 px-4">
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-3 sm:p-4 shadow-lg animate-pulse">
-            <div className="flex items-center space-x-2 sm:space-x-3">
-              <div className="animate-spin rounded-full h-5 w-5 sm:h-6 sm:w-6 border-b-2 border-blue-600 flex-shrink-0"></div>
-              <div className="flex-1 min-w-0">
-                <p className="text-blue-800 font-semibold text-sm sm:text-base lg:text-lg break-words">{progressMessage}</p>
-                <p className="text-blue-600 text-xs sm:text-sm mt-1">Please wait while we handle the API rate limit...</p>
+        <div className="max-w-2xl mx-auto mb-6">
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4 shadow-lg animate-pulse">
+            <div className="flex items-center space-x-3">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+              <div className="flex-1">
+                <p className="text-blue-800 font-semibold text-lg">{progressMessage}</p>
+                <p className="text-blue-600 text-sm mt-1">Please wait while we handle the API rate limit...</p>
               </div>
             </div>
           </div>
@@ -730,9 +730,9 @@ SIMPLE INSTRUCTION: Create a study schedule using ONLY the available time slots 
 
       {/* Error Display */}
       {error && !isRetrying && (
-        <div className="max-w-2xl mx-auto mb-4 sm:mb-6 px-4">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-3 sm:p-4">
-            <p className="text-red-700 text-xs sm:text-sm break-words">{error}</p>
+        <div className="max-w-2xl mx-auto mb-6">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <p className="text-red-700 text-sm">{error}</p>
           </div>
         </div>
       )}
