@@ -188,10 +188,14 @@ export async function generateStudyPlan(
         .trim()
     }
 
-    // Filter and auto-correct sessions to only include the original subjects
+    // Filter and auto-correct sessions to only include the original subjects (exclude breaks)
     const filteredSessions = studyPlanData.sessions ? studyPlanData.sessions
       .filter((session: any) => {
         if (!session.subject) return false
+        // Exclude breaks from being counted as subjects
+        if (session.subject.toLowerCase().includes('break') || 
+            session.type === 'break' || 
+            session.subject === 'Break') return false
         // Very lenient matching - accept if session subject contains any word from original subjects
         return request.subjects.some(subject => {
           const subjectWords = subject.toLowerCase().split(' ')
@@ -207,7 +211,7 @@ export async function generateStudyPlan(
         topic: session.topic ? autoCorrectSubject(session.topic) : session.topic
       })) : []
     
-    // Filter and auto-correct weekly schedule to only include original subjects
+    // Filter and auto-correct weekly schedule to only include original subjects (exclude breaks)
     const filteredWeeklySchedule: any = {}
     if (studyPlanData.weeklySchedule) {
       Object.entries(studyPlanData.weeklySchedule).forEach(([day, schedule]: [string, any]) => {
@@ -215,6 +219,10 @@ export async function generateStudyPlan(
           const filteredSubjects = schedule.subjects
             .filter((subjectInfo: any) => {
               if (!subjectInfo.subject) return false
+              // Exclude breaks from being counted as subjects
+              if (subjectInfo.subject.toLowerCase().includes('break') || 
+                  subjectInfo.type === 'break' || 
+                  subjectInfo.subject === 'Break') return false
               // Very lenient matching for weekly schedule
               return request.subjects.some(subject => {
                 const subjectWords = subject.toLowerCase().split(' ')
@@ -465,380 +473,348 @@ function generateFallbackStudyPlan(request: StudyPlanRequest, existingScheduleCo
 }
 
 function generateOnlineResources(subjects: string[], specificTopics?: string[]) {
-  const resources: any[] = []
+  const selectedResources: any[] = []
   
-  subjects.forEach(subject => {
-    const subjectLower = subject.toLowerCase()
-    
-    if (subjectLower.includes('math') || subjectLower.includes('calculus') || subjectLower.includes('algebra')) {
-      // Math resources - 6-8 per subject
-      resources.push(
+  // Enhanced resource templates with more specific and accurate resources
+  const resourceTemplates = {
+    math: {
+      general: [
         {
-          title: `Khan Academy: ${subject}`,
+          title: 'Khan Academy: Mathematics',
           url: 'https://www.khanacademy.org/math',
           type: 'video',
-          subject,
-          topic: `${subject} fundamentals`,
-          description: `Comprehensive ${subject} lessons from basic to advanced`,
+          topic: 'Comprehensive math curriculum',
+          description: 'Free interactive math lessons from arithmetic to calculus with practice exercises and instant feedback',
           difficulty: 'beginner',
-          estimatedTime: '30-60 minutes',
+          estimatedTime: '20-45 minutes per lesson',
           isFree: true
         },
         {
-          title: `Mathway: Problem Solver`,
-          url: 'https://www.mathway.com',
-          type: 'tool',
-          subject,
-          topic: 'Problem solving',
-          description: 'Step-by-step math problem solver',
-          difficulty: 'all',
-          estimatedTime: '5-15 minutes',
-          isFree: true
-        },
-        {
-          title: `WolframAlpha: Computational Engine`,
+          title: 'Wolfram Alpha',
           url: 'https://www.wolframalpha.com',
           type: 'tool',
-          subject,
-          topic: 'Advanced calculations',
-          description: 'Powerful computational knowledge engine',
+          topic: 'Mathematical computation',
+          description: 'Computational knowledge engine for solving equations, graphing functions, and step-by-step solutions',
           difficulty: 'intermediate',
-          estimatedTime: '10-30 minutes',
-          isFree: true
-        },
-        {
-          title: `Coursera: ${subject} Courses`,
-          url: 'https://www.coursera.org/browse/math-and-logic',
-          type: 'course',
-          subject,
-          topic: 'Structured learning',
-          description: 'University-level math courses',
-          difficulty: 'intermediate',
-          estimatedTime: '4-8 weeks',
-          isFree: false
-        },
-        {
-          title: `Professor Leonard: ${subject} Videos`,
-          url: 'https://www.youtube.com/c/ProfessorLeonard',
-          type: 'video',
-          subject,
-          topic: 'Detailed explanations',
-          description: 'Clear, detailed math explanations',
-          difficulty: 'intermediate',
-          estimatedTime: '45-90 minutes',
-          isFree: true
-        },
-        {
-          title: `MIT OpenCourseWare: Mathematics`,
-          url: 'https://ocw.mit.edu/courses/mathematics/',
-          type: 'course',
-          subject,
-          topic: 'Advanced mathematics',
-          description: 'Free MIT mathematics courses',
-          difficulty: 'advanced',
-          estimatedTime: 'Varies',
+          estimatedTime: '5-15 minutes per problem',
           isFree: true
         }
-      )
-    } else if (subjectLower.includes('physics')) {
-      // Physics resources - 6-8 per subject
-      resources.push(
+      ],
+      algebra: [
         {
-          title: `Khan Academy: Physics`,
-          url: 'https://www.khanacademy.org/science/physics',
+          title: 'Khan Academy: Algebra Basics',
+          url: 'https://www.khanacademy.org/math/algebra-basics',
           type: 'video',
-          subject,
-          topic: 'Physics concepts',
-          description: 'Interactive physics lessons and simulations',
+          topic: 'Algebra fundamentals',
+          description: 'Complete algebra course covering variables, equations, graphing, and systems of equations',
           difficulty: 'beginner',
-          estimatedTime: '45-90 minutes',
+          estimatedTime: '30-60 minutes per topic',
           isFree: true
         },
         {
-          title: `Physics Classroom`,
-          url: 'https://www.physicsclassroom.com',
-          type: 'interactive',
-          subject,
-          topic: 'Physics tutorials',
-          description: 'Comprehensive physics tutorials and simulations',
-          difficulty: 'intermediate',
-          estimatedTime: '30-60 minutes',
-          isFree: true
-        },
-        {
-          title: `MIT OpenCourseWare: Physics`,
-          url: 'https://ocw.mit.edu/courses/physics/',
-          type: 'course',
-          subject,
-          topic: 'Advanced physics',
-          description: 'Free MIT physics courses',
-          difficulty: 'advanced',
-          estimatedTime: 'Varies',
-          isFree: true
-        },
-        {
-          title: `PhET Interactive Simulations`,
-          url: 'https://phet.colorado.edu',
-          type: 'simulation',
-          subject,
-          topic: 'Physics simulations',
-          description: 'Interactive physics and chemistry simulations',
-          difficulty: 'all',
-          estimatedTime: '20-45 minutes',
-          isFree: true
-        },
-        {
-          title: `Coursera: Physics Courses`,
-          url: 'https://www.coursera.org/browse/physical-science-and-engineering/physics-and-astronomy',
-          type: 'course',
-          subject,
-          topic: 'Structured physics learning',
-          description: 'University-level physics courses',
-          difficulty: 'intermediate',
-          estimatedTime: '4-8 weeks',
-          isFree: false
-        },
-        {
-          title: `HyperPhysics`,
-          url: 'http://hyperphysics.phy-astr.gsu.edu/hbase/hframe.html',
-          type: 'reference',
-          subject,
-          topic: 'Physics concepts',
-          description: 'Comprehensive physics concept maps',
+          title: 'IXL Math: Algebra Practice',
+          url: 'https://www.ixl.com/math/algebra-1',
+          type: 'practice',
+          topic: 'Algebra problem solving',
+          description: 'Adaptive algebra practice with detailed explanations and progress tracking',
           difficulty: 'intermediate',
           estimatedTime: '15-30 minutes',
+          isFree: false
+        }
+      ],
+      calculus: [
+        {
+          title: 'Khan Academy: Calculus',
+          url: 'https://www.khanacademy.org/math/calculus-1',
+          type: 'video',
+          topic: 'Differential and integral calculus',
+          description: 'Complete calculus course covering limits, derivatives, integrals, and applications',
+          difficulty: 'advanced',
+          estimatedTime: '45-90 minutes per lesson',
+          isFree: true
+        },
+        {
+          title: 'MIT OpenCourseWare: Single Variable Calculus',
+          url: 'https://ocw.mit.edu/courses/18-01-single-variable-calculus-fall-2006/',
+          type: 'course',
+          topic: 'University-level calculus',
+          description: 'Complete MIT calculus course with video lectures, assignments, and exams',
+          difficulty: 'advanced',
+          estimatedTime: '3-5 hours per week',
           isFree: true
         }
-      )
-    } else if (subjectLower.includes('chemistry')) {
-      // Chemistry resources - 6-8 per subject
-      resources.push(
+      ],
+      quadratic: [
         {
-          title: `Khan Academy: Chemistry`,
+          title: 'Khan Academy: Quadratic Functions',
+          url: 'https://www.khanacademy.org/math/algebra/x2f8bb11595b61c86:quadratic-functions-equations',
+          type: 'video',
+          topic: 'Quadratic equations and functions',
+          description: 'Comprehensive coverage of quadratic equations, graphing parabolas, and solving methods',
+          difficulty: 'intermediate',
+          estimatedTime: '30-45 minutes per lesson',
+          isFree: true
+        }
+      ]
+    },
+    physics: {
+      general: [
+        {
+          title: 'Khan Academy: Physics',
+          url: 'https://www.khanacademy.org/science/physics',
+          type: 'video',
+          topic: 'Physics fundamentals',
+          description: 'Interactive physics lessons covering mechanics, waves, thermodynamics, and modern physics',
+          difficulty: 'beginner',
+          estimatedTime: '30-60 minutes per lesson',
+          isFree: true
+        },
+        {
+          title: 'PhET Interactive Simulations',
+          url: 'https://phet.colorado.edu/en/simulations/filter?subjects=physics',
+          type: 'simulation',
+          topic: 'Physics simulations',
+          description: 'Interactive physics simulations for visualizing concepts in mechanics, electricity, and quantum physics',
+          difficulty: 'intermediate',
+          estimatedTime: '15-30 minutes per simulation',
+          isFree: true
+        }
+      ],
+      mechanics: [
+        {
+          title: 'MIT OpenCourseWare: Classical Mechanics',
+          url: 'https://ocw.mit.edu/courses/8-01sc-classical-mechanics-fall-2016/',
+          type: 'course',
+          topic: 'Classical mechanics',
+          description: 'Complete MIT physics course covering motion, forces, energy, and momentum',
+          difficulty: 'advanced',
+          estimatedTime: '4-6 hours per week',
+          isFree: true
+        }
+      ]
+    },
+    chemistry: {
+      general: [
+        {
+          title: 'Khan Academy: Chemistry',
           url: 'https://www.khanacademy.org/science/chemistry',
           type: 'video',
-          subject,
           topic: 'Chemistry fundamentals',
-          description: 'Complete chemistry course with practice problems',
+          description: 'Complete chemistry course covering atoms, bonds, reactions, and stoichiometry',
           difficulty: 'beginner',
-          estimatedTime: '45-90 minutes',
+          estimatedTime: '30-60 minutes per lesson',
           isFree: true
         },
         {
-          title: `ChemGuide`,
-          url: 'https://www.chemguide.co.uk',
-          type: 'reference',
-          subject,
-          topic: 'Chemistry concepts',
-          description: 'Comprehensive chemistry reference guide',
-          difficulty: 'intermediate',
-          estimatedTime: '20-40 minutes',
-          isFree: true
-        },
-        {
-          title: `MIT OpenCourseWare: Chemistry`,
-          url: 'https://ocw.mit.edu/courses/chemistry/',
-          type: 'course',
-          subject,
-          topic: 'Advanced chemistry',
-          description: 'Free MIT chemistry courses',
-          difficulty: 'advanced',
-          estimatedTime: 'Varies',
-          isFree: true
-        },
-        {
-          title: `ChemCollective`,
-          url: 'http://chemcollective.org',
+          title: 'ChemCollective Virtual Labs',
+          url: 'http://chemcollective.org/vlabs',
           type: 'simulation',
-          subject,
-          topic: 'Virtual chemistry labs',
-          description: 'Virtual chemistry laboratory simulations',
+          topic: 'Virtual chemistry experiments',
+          description: 'Virtual chemistry laboratory with realistic simulations and guided activities',
           difficulty: 'intermediate',
-          estimatedTime: '30-60 minutes',
-          isFree: true
-        },
-        {
-          title: `Coursera: Chemistry Courses`,
-          url: 'https://www.coursera.org/browse/physical-science-and-engineering/chemistry',
-          type: 'course',
-          subject,
-          topic: 'Structured chemistry learning',
-          description: 'University-level chemistry courses',
-          difficulty: 'intermediate',
-          estimatedTime: '4-8 weeks',
-          isFree: false
-        },
-        {
-          title: `Crash Course Chemistry`,
-          url: 'https://www.youtube.com/playlist?list=PL8dPuuaLjXtPHzzYuWy6fYEaX9mQQ8oGr',
-          type: 'video',
-          subject,
-          topic: 'Chemistry overview',
-          description: 'Engaging chemistry video series',
-          difficulty: 'beginner',
-          estimatedTime: '10-15 minutes',
+          estimatedTime: '45-90 minutes per lab',
           isFree: true
         }
-      )
-    } else if (subjectLower.includes('biology')) {
-      // Biology resources - 6-8 per subject
-      resources.push(
+      ],
+      organic: [
         {
-          title: `Khan Academy: Biology`,
+          title: 'Khan Academy: Organic Chemistry',
+          url: 'https://www.khanacademy.org/science/organic-chemistry',
+          type: 'video',
+          topic: 'Organic chemistry',
+          description: 'Comprehensive organic chemistry covering structure, reactions, and mechanisms',
+          difficulty: 'advanced',
+          estimatedTime: '45-75 minutes per lesson',
+          isFree: true
+        }
+      ]
+    },
+    biology: {
+      general: [
+        {
+          title: 'Khan Academy: Biology',
           url: 'https://www.khanacademy.org/science/biology',
           type: 'video',
-          subject,
-          topic: 'Biology concepts',
-          description: 'Comprehensive biology lessons with animations',
+          topic: 'Biology fundamentals',
+          description: 'Complete biology course covering cells, genetics, evolution, and ecology',
           difficulty: 'beginner',
-          estimatedTime: '45-90 minutes',
+          estimatedTime: '30-60 minutes per lesson',
           isFree: true
         },
         {
-          title: `Biology Corner`,
-          url: 'https://www.biologycorner.com',
-          type: 'resource',
-          subject,
-          topic: 'Biology worksheets',
-          description: 'Biology worksheets and activities',
-          difficulty: 'intermediate',
-          estimatedTime: '20-40 minutes',
-          isFree: true
-        },
-        {
-          title: `Coursera: Biology Courses`,
-          url: 'https://www.coursera.org/browse/life-sciences',
-          type: 'course',
-          subject,
-          topic: 'Structured biology learning',
-          description: 'University-level biology courses',
-          difficulty: 'intermediate',
-          estimatedTime: '4-8 weeks',
-          isFree: false
-        },
-        {
-          title: `MIT OpenCourseWare: Biology`,
-          url: 'https://ocw.mit.edu/courses/biology/',
-          type: 'course',
-          subject,
-          topic: 'Advanced biology',
-          description: 'Free MIT biology courses',
-          difficulty: 'advanced',
-          estimatedTime: 'Varies',
-          isFree: true
-        },
-        {
-          title: `Crash Course Biology`,
-          url: 'https://www.youtube.com/playlist?list=PL3EED4C1D684D3ADF',
-          type: 'video',
-          subject,
-          topic: 'Biology overview',
-          description: 'Engaging biology video series',
-          difficulty: 'beginner',
-          estimatedTime: '10-15 minutes',
-          isFree: true
-        },
-        {
-          title: `BioInteractive`,
+          title: 'BioInteractive',
           url: 'https://www.biointeractive.org',
           type: 'interactive',
-          subject,
-          topic: 'Biology simulations',
-          description: 'Interactive biology resources and simulations',
+          topic: 'Biology resources and simulations',
+          description: 'HHMI interactive biology resources with animations, virtual labs, and case studies',
           difficulty: 'intermediate',
-          estimatedTime: '30-60 minutes',
+          estimatedTime: '20-45 minutes per activity',
           isFree: true
         }
-      )
-    } else {
-      // Generic resources for other subjects - 4-6 per subject
-      resources.push(
+      ],
+      molecular: [
         {
-          title: `Khan Academy: ${subject}`,
-          url: `https://www.khanacademy.org/search?search_again=1&page_search_query=${encodeURIComponent(subject)}`,
-          type: 'video',
-          subject,
-          topic: `${subject} fundamentals`,
-          description: `Educational content for ${subject}`,
-          difficulty: 'beginner',
-          estimatedTime: '30-60 minutes',
-          isFree: true
-        },
-        {
-          title: `Coursera: ${subject} Courses`,
-          url: `https://www.coursera.org/search?query=${encodeURIComponent(subject)}`,
+          title: 'MIT OpenCourseWare: Molecular Biology',
+          url: 'https://ocw.mit.edu/courses/7-28-molecular-biology-spring-2005/',
           type: 'course',
-          subject,
-          topic: `Structured ${subject} learning`,
-          description: `University-level ${subject} courses`,
-          difficulty: 'intermediate',
-          estimatedTime: '4-8 weeks',
-          isFree: false
-        },
-        {
-          title: `YouTube: ${subject} Tutorials`,
-          url: `https://www.youtube.com/results?search_query=${encodeURIComponent(subject + ' tutorial')}`,
-          type: 'video',
-          subject,
-          topic: `${subject} tutorials`,
-          description: `Video tutorials for ${subject}`,
-          difficulty: 'all',
-          estimatedTime: '15-45 minutes',
-          isFree: true
-        },
-        {
-          title: `MIT OpenCourseWare: ${subject}`,
-          url: 'https://ocw.mit.edu',
-          type: 'course',
-          subject,
-          topic: `Advanced ${subject}`,
-          description: `Free MIT courses related to ${subject}`,
+          topic: 'Molecular biology',
+          description: 'Advanced molecular biology course covering DNA, RNA, proteins, and gene regulation',
           difficulty: 'advanced',
-          estimatedTime: 'Varies',
+          estimatedTime: '4-6 hours per week',
           isFree: true
         }
-      )
+      ]
+    },
+    history: {
+      general: [
+        {
+          title: 'Khan Academy: World History',
+          url: 'https://www.khanacademy.org/humanities/world-history',
+          type: 'video',
+          topic: 'World history',
+          description: 'Comprehensive world history from ancient civilizations to modern times',
+          difficulty: 'beginner',
+          estimatedTime: '20-40 minutes per lesson',
+          isFree: true
+        },
+        {
+          title: 'Crash Course World History',
+          url: 'https://www.youtube.com/playlist?list=PLBDA2E52FB1EF80C9',
+          type: 'video',
+          topic: 'World history overview',
+          description: 'Engaging 10-15 minute videos covering major historical events and themes',
+          difficulty: 'beginner',
+          estimatedTime: '10-15 minutes per video',
+          isFree: true
+        }
+      ]
+    },
+    english: {
+      general: [
+        {
+          title: 'Khan Academy: Grammar',
+          url: 'https://www.khanacademy.org/humanities/grammar',
+          type: 'video',
+          topic: 'English grammar and usage',
+          description: 'Complete grammar course covering parts of speech, sentence structure, and writing mechanics',
+          difficulty: 'beginner',
+          estimatedTime: '15-30 minutes per lesson',
+          isFree: true
+        },
+        {
+          title: 'Purdue OWL Writing Lab',
+          url: 'https://owl.purdue.edu/owl/purdue_owl.html',
+          type: 'resource',
+          topic: 'Writing and research',
+          description: 'Comprehensive writing resources covering grammar, style, citation, and research methods',
+          difficulty: 'intermediate',
+          estimatedTime: '10-30 minutes per topic',
+          isFree: true
+        }
+      ]
     }
-  })
+  }
   
-  // Add general study resources
-  resources.push(
+  // General high-quality resources that work for any subject
+  const universalResources = [
     {
       title: 'Coursera: Learning How to Learn',
       url: 'https://www.coursera.org/learn/learning-how-to-learn',
       type: 'course',
       subject: 'Study Skills',
-      topic: 'Effective Learning Techniques',
-      description: 'Popular course on learning techniques and memory',
+      topic: 'Effective learning techniques',
+      description: 'Evidence-based learning techniques for mastering tough subjects, taught by UC San Diego',
       difficulty: 'beginner',
-      estimatedTime: '4 weeks',
+      estimatedTime: '4 weeks (2-4 hours/week)',
       isFree: true
     },
     {
-      title: 'Anki: Spaced Repetition',
-      url: 'https://apps.ankiweb.net',
+      title: 'Quizlet',
+      url: 'https://quizlet.com',
       type: 'tool',
-      subject: 'Study Skills',
-      topic: 'Memory and retention',
-      description: 'Powerful spaced repetition flashcard system',
+      subject: 'Study Tools',
+      topic: 'Flashcards and study games',
+      description: 'Create and study flashcards, take practice tests, and play learning games',
       difficulty: 'all',
-      estimatedTime: '15-30 minutes daily',
-      isFree: true
-    },
-    {
-      title: 'Pomodoro Timer',
-      url: 'https://pomofocus.io',
-      type: 'tool',
-      subject: 'Study Skills',
-      topic: 'Time management',
-      description: 'Focus timer using the Pomodoro Technique',
-      difficulty: 'all',
-      estimatedTime: '25 minute sessions',
+      estimatedTime: '10-30 minutes per session',
       isFree: true
     }
-  )
+  ]
   
-  return resources
+  // Generate resources based on subjects and specific topics
+  subjects.forEach(subject => {
+    const subjectLower = subject.toLowerCase()
+    let subjectResources: any[] = []
+    
+    // Match subject to resource templates
+    if (subjectLower.includes('math') || subjectLower.includes('algebra') || subjectLower.includes('calculus')) {
+      // Check for specific math topics
+      if (specificTopics) {
+        specificTopics.forEach(topic => {
+          const topicLower = topic.toLowerCase()
+          if (topicLower.includes('quadratic') && resourceTemplates.math.quadratic) {
+            subjectResources.push(...resourceTemplates.math.quadratic.map(r => ({ ...r, subject })))
+          } else if (topicLower.includes('algebra') && resourceTemplates.math.algebra) {
+            subjectResources.push(...resourceTemplates.math.algebra.map(r => ({ ...r, subject })))
+          } else if (topicLower.includes('calculus') && resourceTemplates.math.calculus) {
+            subjectResources.push(...resourceTemplates.math.calculus.map(r => ({ ...r, subject })))
+          }
+        })
+      }
+      // Add general math resources if no specific ones or as backup
+      if (subjectResources.length === 0) {
+        subjectResources.push(...resourceTemplates.math.general.map(r => ({ ...r, subject })))
+      }
+    } else if (subjectLower.includes('physics')) {
+      subjectResources.push(...resourceTemplates.physics.general.map(r => ({ ...r, subject })))
+      // Add specific physics resources based on topics
+      if (specificTopics?.some(topic => topic.toLowerCase().includes('mechanic'))) {
+        subjectResources.push(...resourceTemplates.physics.mechanics.map(r => ({ ...r, subject })))
+      }
+    } else if (subjectLower.includes('chemistry')) {
+      subjectResources.push(...resourceTemplates.chemistry.general.map(r => ({ ...r, subject })))
+      if (specificTopics?.some(topic => topic.toLowerCase().includes('organic'))) {
+        subjectResources.push(...resourceTemplates.chemistry.organic.map(r => ({ ...r, subject })))
+      }
+    } else if (subjectLower.includes('biology')) {
+      subjectResources.push(...resourceTemplates.biology.general.map(r => ({ ...r, subject })))
+      if (specificTopics?.some(topic => topic.toLowerCase().includes('molecular'))) {
+        subjectResources.push(...resourceTemplates.biology.molecular.map(r => ({ ...r, subject })))
+      }
+    } else if (subjectLower.includes('history')) {
+      subjectResources.push(...resourceTemplates.history.general.map(r => ({ ...r, subject })))
+    } else if (subjectLower.includes('english') || subjectLower.includes('literature')) {
+      subjectResources.push(...resourceTemplates.english.general.map(r => ({ ...r, subject })))
+    } else {
+      // Generic fallback for other subjects
+      subjectResources.push({
+        title: `Khan Academy: ${subject}`,
+        url: `https://www.khanacademy.org/search?search_again=1&page_search_query=${encodeURIComponent(subject)}`,
+        type: 'video',
+        subject,
+        topic: `${subject} fundamentals`,
+        description: `Educational videos and practice exercises for ${subject}`,
+        difficulty: 'beginner',
+        estimatedTime: '20-45 minutes per lesson',
+        isFree: true
+      })
+    }
+    
+    // Add the best 1-2 resources per subject to avoid overcrowding
+    selectedResources.push(...subjectResources.slice(0, 2))
+  })
+  
+  // Determine final count (3-5 resources based on number of subjects)
+  const targetCount = Math.min(5, Math.max(3, subjects.length + 1))
+  
+  // Fill remaining slots with universal resources if needed
+  const remainingSlots = Math.max(0, targetCount - selectedResources.length)
+  if (remainingSlots > 0) {
+    selectedResources.push(...universalResources.slice(0, remainingSlots))
+  }
+  
+  // Return 3-5 resources total
+  return selectedResources.slice(0, targetCount)
 }
 
 function getTimeSlotFromPreference(preferredTimes: string): string {
@@ -1099,7 +1075,8 @@ ${request.preferredTimes ? `1.5. **🚨 ABSOLUTE TIME RESTRICTION 🚨**: ${getT
    - NEVER focus on just one topic - ensure balanced coverage` : 'Create comprehensive coverage of the subjects with specific topic areas.'}
 3. Create a realistic study schedule from today until the target date
 4. Distribute EXACTLY ${request.dailyHours} hours per day across the subjects using SMART SCHEDULING:
-   - For ${request.dailyHours} daily hours: Create ${Math.ceil(request.dailyHours / 1.5)} sessions of ~1.5 hours each
+   - For ${request.dailyHours} daily hours: Create ${Math.ceil(request.dailyHours / 1.5)} sessions that add up to EXACTLY ${request.dailyHours} hours
+   - Session durations should be calculated to total exactly ${request.dailyHours} hours (e.g., for 4 hours: 1.33 + 1.33 + 1.34 = 4.0 hours)
    - Break longer study periods with different subjects or session types
    - Alternate between intensive and lighter subjects within the same day
 5. ${request.includeWeekends === 'weekdays' ? 'Schedule ONLY Monday through Friday (5 days per week)' : request.includeWeekends === 'all' ? 'Include all 7 days of the week' : 'Use 5-6 days per week as needed'}
@@ -1107,7 +1084,9 @@ ${request.preferredTimes ? `1.5. **🚨 ABSOLUTE TIME RESTRICTION 🚨**: ${getT
    - Individual sessions: 1-1.5 hours maximum (optimal for focus and retention)
    - Minimum session: 30 minutes (anything shorter is ineffective)
    - NO sessions longer than 1.5 hours (causes fatigue and poor retention)
-7. Total daily hours should EXACTLY equal ${request.dailyHours} hours (not more, not less)
+7. **CRITICAL**: Total daily hours MUST EXACTLY equal ${request.dailyHours} hours (not more, not less)
+   - Calculate session durations precisely so they add up to ${request.dailyHours}
+   - Example for ${request.dailyHours} hours: distribute as ${request.dailyHours <= 2 ? `${request.dailyHours} hour session` : request.dailyHours === 3 ? '1.5 + 1.5 = 3.0 hours' : request.dailyHours === 4 ? '1.33 + 1.33 + 1.34 = 4.0 hours' : `sessions that total exactly ${request.dailyHours} hours`}
 8. Generate specific time slots (e.g., "9:00 AM - 11:00 AM", "2:00 PM - 4:00 PM") for each session
 9. ${request.preferredTimes ? `🚨 CRITICAL TIME RESTRICTION - MUST FOLLOW: ${getTimeSlotFromPreference(request.preferredTimes)} ALL sessions must be within this time window. NO EXCEPTIONS.` : 'Use common study hours like 9 AM-12 PM, 2 PM-5 PM, 7 PM-9 PM'}
 10. Include INTELLIGENT session variety based on learning science:
@@ -1130,20 +1109,20 @@ MANDATORY: Your response MUST include ALL sections: sessions, flashcards, learni
 SPECIFIC REQUIREMENTS:
 - learningTips: Provide practical, actionable study advice (8-12 tips)
 - examStrategy: Include test-taking strategies and preparation methods (6-10 strategies)
-- flashcards: **CRITICAL** - Generate 20-30 flashcards covering ALL specified topics:
+- flashcards: **CRITICAL** - Generate EXACTLY 10 flashcards covering ALL specified topics:
   ${request.specificTopics && request.specificTopics.length > 0 ? `
-  * Create 3-5 flashcards for EACH topic: ${request.specificTopics.join(', ')}
+  * Create 2-3 flashcards for EACH topic: ${request.specificTopics.join(', ')}
   * Ensure balanced coverage - do NOT focus on just one topic
   * Include questions about definitions, formulas, examples, and applications
   * Mix difficulty levels: easy, medium, hard for each topic` : '* Cover key concepts from all subjects with varied difficulty levels'}
-- onlineResources: **CRITICAL** - Generate 8-12 resources for EACH subject (minimum 20+ total resources):
-  * Mathematics: Khan Academy, Mathway, WolframAlpha, Coursera Math, Professor Leonard, MIT OCW Math, PatrickJMT, Paul's Online Math Notes
-  * Physics: Khan Academy Physics, Physics Classroom, MIT OCW Physics, PhET Simulations, Coursera Physics, HyperPhysics, Crash Course Physics
-  * Chemistry: Khan Academy Chemistry, ChemGuide, MIT OCW Chemistry, ChemCollective, Coursera Chemistry, Crash Course Chemistry, ChemSpider
-  * Biology: Khan Academy Biology, Biology Corner, MIT OCW Biology, Coursera Biology, Crash Course Biology, BioInteractive, Nature Education
-  * Include variety: videos, interactive tools, problem solvers, simulations, courses, references
+- onlineResources: **CRITICAL** - Generate 3-5 high-quality resources total (not per subject):
+  * Select the BEST resources that match the subjects: ${request.subjects.join(', ')}
+  * For specific topics like "${request.specificTopics?.join(', ') || 'general coverage'}", include topic-specific resources
+  * Prioritize: Khan Academy, MIT OCW, Coursera, subject-specific tools, and interactive resources
+  * Include variety: videos, interactive tools, courses, simulations, practice platforms
   * Mix difficulty levels: beginner, intermediate, advanced
   * Include both free and premium options
+  * Quality over quantity - each resource should be highly relevant and valuable
 
 IMPORTANT: Keep total weekly hours reasonable - aim for ${request.dailyHours * (request.includeWeekends === 'all' ? 7 : 5)} hours per week maximum.
 
@@ -1259,7 +1238,8 @@ function createFallbackWeeklySchedule(request: StudyPlanRequest, existingSchedul
   
   // Intelligent session distribution based on daily hours and subjects
   const sessionsPerDay = Math.ceil(request.dailyHours / 1.5) // Aim for 1.5 hour sessions
-  const sessionDuration = request.dailyHours / sessionsPerDay // Distribute hours evenly
+  // Calculate actual session duration to match total daily hours exactly
+  const baseSessionDuration = request.dailyHours / sessionsPerDay
   
   // Global counters to ensure balanced topic coverage across all days
   let globalTopicIndex = 0
@@ -1274,7 +1254,20 @@ function createFallbackWeeklySchedule(request: StudyPlanRequest, existingSchedul
     
     for (let i = 0; i < targetSessions && dailyHours < request.dailyHours; i++) {
       const remainingHours = request.dailyHours - dailyHours
-      const duration = Math.min(1.5, Math.max(0.5, remainingHours / (targetSessions - i))) // Distribute remaining hours
+      const remainingSessions = targetSessions - i
+      
+      // Calculate duration to ensure exact total
+      let duration: number
+      if (remainingSessions === 1) {
+        // Last session gets all remaining hours
+        duration = remainingHours
+      } else {
+        // Use base duration but ensure we don't exceed limits
+        duration = Math.min(1.5, Math.max(0.5, remainingHours / remainingSessions))
+      }
+      
+      // Ensure duration doesn't exceed remaining hours
+      duration = Math.min(duration, remainingHours)
       
       if (duration >= 0.5) { // Minimum 30 minutes
         const subject = request.subjects[globalSubjectIndex % request.subjects.length]
@@ -1294,9 +1287,12 @@ function createFallbackWeeklySchedule(request: StudyPlanRequest, existingSchedul
         const sessionTypes = ['lecture', 'practice', 'review', 'assessment']
         const sessionType = sessionTypes[sessionCount % sessionTypes.length]
         
+        // Round duration to nearest 0.25 for better precision
+        const roundedDuration = Math.round(duration * 4) / 4
+        
         schedule[day].subjects.push({
           subject,
-          duration: Math.round(duration * 2) / 2, // Round to nearest 0.5
+          duration: roundedDuration,
           timeSlot,
           focus: focus,
           priority: sessionCount === 0 ? 'high' : sessionCount === 1 ? 'medium' : 'low',
@@ -1304,26 +1300,24 @@ function createFallbackWeeklySchedule(request: StudyPlanRequest, existingSchedul
         })
         
         // Add break between sessions (except for the last session of the day)
-        if (sessionCount < targetSessions - 1 && sessionCount < timeSlots.length - 1) {
-          const breakDuration = 0.25 // 15-minute break
-          schedule[day].subjects.push({
-            subject: 'Break',
-            duration: breakDuration,
-            timeSlot: 'Break Time',
-            focus: 'Rest and recharge',
-            priority: 'low',
-            type: 'break'
-          })
-          dailyHours += breakDuration
-        }
+        // Note: Breaks are handled separately and not counted as subjects
         
-        dailyHours += duration
+        dailyHours += roundedDuration
         sessionCount++
         globalSubjectIndex++ // Increment for next session
       }
     }
     
-    schedule[day].totalHours = Math.round(dailyHours * 2) / 2 // Round to nearest 0.5
+    // Ensure total hours exactly matches the requested daily hours
+    schedule[day].totalHours = Math.round(dailyHours * 4) / 4 // Round to nearest 0.25
+    
+    // If there's a small discrepancy, adjust the last session
+    const difference = request.dailyHours - schedule[day].totalHours
+    if (Math.abs(difference) > 0.01 && schedule[day].subjects.length > 0) {
+      const lastSession = schedule[day].subjects[schedule[day].subjects.length - 1]
+      lastSession.duration = Math.round((lastSession.duration + difference) * 4) / 4
+      schedule[day].totalHours = request.dailyHours
+    }
   })
   
   return schedule
@@ -1349,7 +1343,9 @@ function createFallbackSessions(request: StudyPlanRequest, existingScheduleConte
         sessionDate.setDate(startDate.getDate() + daysUntilTarget)
         
         // Only add actual study sessions, not breaks
-        if (subjectInfo.subject !== 'Break') {
+        if (subjectInfo.subject !== 'Break' && 
+            !subjectInfo.subject.toLowerCase().includes('break') && 
+            subjectInfo.type !== 'break') {
           sessions.push({
             id: `session_${sessionId++}`,
             day: day,
@@ -1407,49 +1403,466 @@ function createFallbackFlashcards(request: StudyPlanRequest) {
   const flashcards: any[] = []
   let cardId = 1
   
+  // Generate exactly 10 flashcards total
+  const maxCards = 10
+  
+  // Track used questions to prevent duplicates
+  const usedQuestions = new Set<string>()
+  
   // If specific topics are provided, create flashcards for each topic
   if (request.specificTopics && request.specificTopics.length > 0) {
     const topics = request.specificTopics // Store in local variable for type safety
+    const cardsPerTopic = Math.floor(maxCards / topics.length)
+    const remainingCards = maxCards % topics.length
+    
     topics.forEach((topic, topicIndex) => {
-      // Create 3-5 flashcards per topic
-      const cardsPerTopic = Math.min(5, Math.max(3, Math.floor(25 / topics.length)))
+      // Distribute cards evenly, with remainder going to first topics
+      const cardsForThisTopic = cardsPerTopic + (topicIndex < remainingCards ? 1 : 0)
       
-      for (let i = 0; i < cardsPerTopic; i++) {
+      // Find the best matching subject for this topic
+      const matchingSubject = request.subjects.find(subject => {
+        const subjectLower = subject.toLowerCase()
+        const topicLower = topic.toLowerCase()
+        return topicLower.includes(subjectLower) || 
+               subjectLower.includes(topicLower) ||
+               (subjectLower.includes('math') && (topicLower.includes('equation') || topicLower.includes('algebra') || topicLower.includes('calculus'))) ||
+               (subjectLower.includes('science') && (topicLower.includes('physics') || topicLower.includes('chemistry') || topicLower.includes('biology')))
+      }) || request.subjects[0] || 'Study'
+      
+      // Generate unique flashcards for this topic
+      let attempts = 0
+      for (let i = 0; i < cardsForThisTopic && flashcards.length < maxCards && attempts < 20; attempts++) {
         const difficulties = ['easy', 'medium', 'hard']
         const difficulty = difficulties[i % difficulties.length]
         
-        flashcards.push({
-          id: `flashcard_${cardId++}`,
-          subject: request.subjects[0] || 'Study',
-          question: `${topic}: ${getTopicQuestion(topic, difficulty)}`,
-          answer: `${getTopicAnswer(topic, difficulty)}`,
-          difficulty,
-          tags: [topic.toLowerCase().replace(/\s+/g, '-'), difficulty, 'specific-topic']
-        })
+        const { question, answer } = generateUniqueTopicFlashcard(topic, difficulty, i, topicIndex, usedQuestions)
+        
+        // Check if this question is unique
+        if (!usedQuestions.has(question.toLowerCase())) {
+          usedQuestions.add(question.toLowerCase())
+          
+          flashcards.push({
+            id: `flashcard_${cardId++}`,
+            subject: matchingSubject,
+            question: question,
+            answer: answer,
+            difficulty,
+            tags: [topic.toLowerCase().replace(/\s+/g, '-'), difficulty, 'specific-topic', matchingSubject.toLowerCase()]
+          })
+          i++ // Only increment when we successfully add a card
+        }
       }
     })
   } else {
-    // Create flashcards for each subject
-    request.subjects.forEach((subject) => {
-      const cardsPerSubject = Math.floor(25 / request.subjects.length)
+    // Create flashcards for each subject with better distribution
+    const cardsPerSubject = Math.floor(maxCards / request.subjects.length)
+    const remainingCards = maxCards % request.subjects.length
+    
+    request.subjects.forEach((subject, subjectIndex) => {
+      const cardsForThisSubject = cardsPerSubject + (subjectIndex < remainingCards ? 1 : 0)
       
-      for (let i = 0; i < cardsPerSubject; i++) {
+      // Generate unique flashcards for this subject
+      let attempts = 0
+      for (let i = 0; i < cardsForThisSubject && flashcards.length < maxCards && attempts < 20; attempts++) {
         const difficulties = ['easy', 'medium', 'hard']
         const difficulty = difficulties[i % difficulties.length]
         
-        flashcards.push({
-          id: `flashcard_${cardId++}`,
-          subject,
-          question: `What are the ${difficulty} concepts in ${subject}?`,
-          answer: `Review the ${difficulty} principles and core topics of ${subject}`,
-          difficulty,
-          tags: [subject.toLowerCase(), difficulty]
-        })
+        const { question, answer } = generateUniqueSubjectFlashcard(subject, difficulty, i, subjectIndex, usedQuestions)
+        
+        // Check if this question is unique
+        if (!usedQuestions.has(question.toLowerCase())) {
+          usedQuestions.add(question.toLowerCase())
+          
+          flashcards.push({
+            id: `flashcard_${cardId++}`,
+            subject,
+            question,
+            answer,
+            difficulty,
+            tags: [subject.toLowerCase().replace(/\s+/g, '-'), difficulty]
+          })
+          i++ // Only increment when we successfully add a card
+        }
       }
     })
   }
   
-  return flashcards
+  return flashcards.slice(0, maxCards) // Ensure exactly 10 cards
+}
+
+// Helper function to generate unique topic-specific flashcards
+function generateUniqueTopicFlashcard(topic: string, difficulty: string, cardIndex: number, topicIndex: number, usedQuestions: Set<string>): { question: string, answer: string } {
+  const topicLower = topic.toLowerCase()
+  
+  // Create comprehensive question pools for each topic and difficulty
+  const questionPools = getTopicQuestionPools(topic, difficulty)
+  
+  // Try to find a unique question from the pool
+  for (let i = 0; i < questionPools.length; i++) {
+    const poolIndex = (cardIndex + topicIndex + i) % questionPools.length
+    const questionData = questionPools[poolIndex]
+    
+    if (!usedQuestions.has(questionData.question.toLowerCase())) {
+      return questionData
+    }
+  }
+  
+  // Fallback: generate a unique question with index suffix if all pool questions are used
+  const fallback = questionPools[0] || { 
+    question: `What are the key concepts of ${topic}?`, 
+    answer: `${topic} involves fundamental principles and applications that are essential for understanding this subject area.` 
+  }
+  
+  return {
+    question: `${fallback.question} (Part ${cardIndex + 1})`,
+    answer: fallback.answer
+  }
+}
+
+// Helper function to generate unique subject-specific flashcards
+function generateUniqueSubjectFlashcard(subject: string, difficulty: string, cardIndex: number, subjectIndex: number, usedQuestions: Set<string>): { question: string, answer: string } {
+  const subjectLower = subject.toLowerCase()
+  
+  // Create comprehensive question pools for each subject and difficulty
+  const questionPools = getSubjectQuestionPools(subject, difficulty)
+  
+  // Try to find a unique question from the pool
+  for (let i = 0; i < questionPools.length; i++) {
+    const poolIndex = (cardIndex + subjectIndex + i) % questionPools.length
+    const questionData = questionPools[poolIndex]
+    
+    if (!usedQuestions.has(questionData.question.toLowerCase())) {
+      return questionData
+    }
+  }
+  
+  // Fallback: generate a unique question with index suffix if all pool questions are used
+  const fallback = questionPools[0] || { 
+    question: `What are the fundamentals of ${subject}?`, 
+    answer: `${subject} involves core concepts and principles that form the foundation for advanced study in this field.` 
+  }
+  
+  return {
+    question: `${fallback.question} (Aspect ${cardIndex + 1})`,
+    answer: fallback.answer
+  }
+}
+
+// Function to get comprehensive question pools for topics
+function getTopicQuestionPools(topic: string, difficulty: string): Array<{ question: string, answer: string }> {
+  const topicLower = topic.toLowerCase()
+  
+  if (topicLower.includes('quadratic')) {
+    switch (difficulty) {
+      case 'easy':
+        return [
+          { question: 'What is a quadratic equation?', answer: 'A quadratic equation is a polynomial equation of degree 2, written in the form ax² + bx + c = 0, where a ≠ 0. The graph of a quadratic function is a parabola.' },
+          { question: 'What is the standard form of a quadratic equation?', answer: 'The standard form is ax² + bx + c = 0, where a, b, and c are constants and a ≠ 0. This form makes it easy to identify the coefficients for solving.' },
+          { question: 'What does the coefficient "a" determine in a quadratic equation?', answer: 'The coefficient "a" determines the direction and width of the parabola. If a > 0, the parabola opens upward; if a < 0, it opens downward. Larger |a| values make the parabola narrower.' },
+          { question: 'What is the axis of symmetry in a quadratic function?', answer: 'The axis of symmetry is a vertical line that passes through the vertex of the parabola, given by x = -b/(2a). The parabola is symmetric about this line.' }
+        ]
+      case 'medium':
+        return [
+          { question: 'How do you find the vertex of a quadratic function y = ax² + bx + c?', answer: 'The vertex is at x = -b/(2a). Substitute this x-value back into the equation to find the y-coordinate. The vertex form is y = a(x - h)² + k where (h,k) is the vertex.' },
+          { question: 'What is the discriminant and what does it tell us?', answer: 'The discriminant is b² - 4ac. If positive, there are 2 real roots; if zero, 1 real root; if negative, no real roots (2 complex roots).' },
+          { question: 'How do you complete the square for x² + 6x + 5?', answer: 'Take half of the coefficient of x (6/2 = 3), square it (9), then rewrite: x² + 6x + 9 - 9 + 5 = (x + 3)² - 4.' },
+          { question: 'What are the x-intercepts of a quadratic function?', answer: 'The x-intercepts are the points where the parabola crosses the x-axis (where y = 0). They are found by solving ax² + bx + c = 0.' }
+        ]
+      case 'hard':
+        return [
+          { question: 'Solve x² - 5x + 6 = 0 using factoring and the quadratic formula', answer: 'Factoring: (x - 2)(x - 3) = 0, so x = 2 or x = 3. Quadratic formula: x = (5 ± √(25-24))/2 = (5 ± 1)/2, giving x = 3 or x = 2.' },
+          { question: 'Find the range of f(x) = 2x² - 8x + 3', answer: 'Complete the square: f(x) = 2(x² - 4x) + 3 = 2(x - 2)² - 8 + 3 = 2(x - 2)² - 5. Since a = 2 > 0, the parabola opens upward with vertex at (2, -5). Range: [-5, ∞).' },
+          { question: 'Solve the quadratic inequality x² - 3x - 4 > 0', answer: 'Factor: (x - 4)(x + 1) > 0. The roots are x = 4 and x = -1. Test intervals: x < -1 (positive), -1 < x < 4 (negative), x > 4 (positive). Solution: x < -1 or x > 4.' },
+          { question: 'Find the quadratic function with vertex (2, -3) passing through (0, 1)', answer: 'Use vertex form: f(x) = a(x - 2)² - 3. Substitute (0, 1): 1 = a(0 - 2)² - 3 → 1 = 4a - 3 → a = 1. So f(x) = (x - 2)² - 3 = x² - 4x + 1.' }
+        ]
+    }
+  } else if (topicLower.includes('algebra')) {
+    switch (difficulty) {
+      case 'easy':
+        return [
+          { question: 'What is algebra?', answer: 'Algebra is a branch of mathematics that uses symbols (usually letters) to represent unknown numbers or variables in equations and expressions.' },
+          { question: 'What is a variable in algebra?', answer: 'A variable is a symbol (like x, y, or z) that represents an unknown value that can change. Variables allow us to write general mathematical relationships.' },
+          { question: 'What is an algebraic expression?', answer: 'An algebraic expression is a mathematical phrase that contains numbers, variables, and operation symbols, but no equals sign. Examples: 3x + 5, 2y - 7.' },
+          { question: 'What is the difference between an expression and an equation?', answer: 'An expression is a mathematical phrase without an equals sign (like 3x + 5), while an equation has an equals sign showing that two expressions are equal (like 3x + 5 = 14).' }
+        ]
+      case 'medium':
+        return [
+          { question: 'How do you solve the equation 3x + 7 = 22?', answer: 'Subtract 7 from both sides: 3x = 15. Then divide both sides by 3: x = 5. Check: 3(5) + 7 = 15 + 7 = 22 ✓' },
+          { question: 'What are like terms and how do you combine them?', answer: 'Like terms have the same variables with the same exponents. Combine by adding/subtracting coefficients: 3x + 5x = 8x, but 3x + 5y cannot be simplified.' },
+          { question: 'How do you distribute 3(x + 4)?', answer: 'Multiply 3 by each term inside the parentheses: 3(x + 4) = 3·x + 3·4 = 3x + 12. This is the distributive property.' },
+          { question: 'Solve for x: 2x - 5 = x + 3', answer: 'Subtract x from both sides: x - 5 = 3. Add 5 to both sides: x = 8. Check: 2(8) - 5 = 16 - 5 = 11, and 8 + 3 = 11 ✓' }
+        ]
+      case 'hard':
+        return [
+          { question: 'Solve the system: 2x + 3y = 12 and x - y = 1', answer: 'From equation 2: x = y + 1. Substitute into equation 1: 2(y + 1) + 3y = 12 → 2y + 2 + 3y = 12 → 5y = 10 → y = 2. Then x = 3. Solution: (3, 2)' },
+          { question: 'Factor completely: x³ - 8', answer: 'This is a difference of cubes: x³ - 2³ = (x - 2)(x² + 2x + 4). The formula is a³ - b³ = (a - b)(a² + ab + b²).' },
+          { question: 'Solve the inequality 2x - 3 < 5x + 6', answer: 'Subtract 2x from both sides: -3 < 3x + 6. Subtract 6 from both sides: -9 < 3x. Divide by 3: -3 < x, or x > -3.' },
+          { question: 'Simplify: (x² - 4)/(x + 2)', answer: 'Factor the numerator: (x - 2)(x + 2)/(x + 2). Cancel common factors: x - 2 (provided x ≠ -2).' }
+        ]
+    }
+  } else if (topicLower.includes('calculus')) {
+    switch (difficulty) {
+      case 'easy':
+        return [
+          { question: 'What is calculus?', answer: 'Calculus is the mathematical study of continuous change. It has two main branches: differential calculus (derivatives/rates of change) and integral calculus (areas/accumulation).' },
+          { question: 'What is a derivative?', answer: 'A derivative represents the instantaneous rate of change of a function at a point. Geometrically, it\'s the slope of the tangent line to the curve at that point.' },
+          { question: 'What is a limit in calculus?', answer: 'A limit describes the value that a function approaches as the input approaches a certain value. It\'s the foundation for defining derivatives and integrals.' },
+          { question: 'What does it mean for a function to be continuous?', answer: 'A function is continuous at a point if there are no breaks, holes, or jumps at that point. The limit exists and equals the function value.' }
+        ]
+      case 'medium':
+        return [
+          { question: 'Find the derivative of f(x) = x³ + 2x² - 5x + 1', answer: 'Using the power rule: f\'(x) = 3x² + 4x - 5. The power rule states that d/dx(xⁿ) = nxⁿ⁻¹.' },
+          { question: 'What is the chain rule?', answer: 'If f(g(x)) is a composite function, then its derivative is f\'(g(x)) × g\'(x). Used when you have a function inside another function.' },
+          { question: 'Find the derivative of sin(x)', answer: 'The derivative of sin(x) is cos(x). This is one of the basic trigonometric derivatives.' },
+          { question: 'What is the product rule for derivatives?', answer: 'If f(x) = u(x)·v(x), then f\'(x) = u\'(x)·v(x) + u(x)·v\'(x). The derivative of a product is not the product of derivatives.' }
+        ]
+      case 'hard':
+        return [
+          { question: 'Find the derivative of y = ln(sin(x²))', answer: 'Using chain rule: dy/dx = (1/sin(x²)) × cos(x²) × 2x = (2x cos(x²))/sin(x²) = 2x cot(x²)' },
+          { question: 'Evaluate the limit: lim(x→0) (sin(x)/x)', answer: 'This is a fundamental limit that equals 1. It can be proven using the squeeze theorem or L\'Hôpital\'s rule.' },
+          { question: 'Find the critical points of f(x) = x³ - 3x² + 2', answer: 'f\'(x) = 3x² - 6x = 3x(x - 2). Critical points occur when f\'(x) = 0, so x = 0 and x = 2.' },
+          { question: 'Use implicit differentiation to find dy/dx for x² + y² = 25', answer: 'Differentiate both sides: 2x + 2y(dy/dx) = 0. Solve for dy/dx: dy/dx = -x/y.' }
+        ]
+    }
+  }
+  
+  // Generic topic handling with more variety
+  const genericQuestions = [
+    { question: `What are the fundamental concepts of ${topic}?`, answer: `${topic} involves core principles, definitions, and basic applications that form the foundation for advanced study.` },
+    { question: `How is ${topic} applied in real-world situations?`, answer: `${topic} has practical applications in various fields, helping solve problems and understand complex systems.` },
+    { question: `What are the key principles underlying ${topic}?`, answer: `The key principles of ${topic} include systematic approaches, logical reasoning, and evidence-based conclusions.` },
+    { question: `What methods are used to study ${topic}?`, answer: `${topic} is studied through various methods including analysis, experimentation, and theoretical frameworks.` },
+    { question: `How does ${topic} relate to other areas of study?`, answer: `${topic} connects to other disciplines through shared concepts, methodologies, and applications.` }
+  ]
+  
+  return genericQuestions
+}
+
+// Function to get comprehensive question pools for subjects
+function getSubjectQuestionPools(subject: string, difficulty: string): Array<{ question: string, answer: string }> {
+  const subjectLower = subject.toLowerCase()
+  
+  if (subjectLower.includes('math') || subjectLower.includes('algebra') || subjectLower.includes('calculus')) {
+    switch (difficulty) {
+      case 'easy':
+        return [
+          { question: `What are variables in ${subject}?`, answer: `In ${subject}, variables are symbols representing unknown values that can change, allowing us to write general mathematical expressions.` },
+          { question: `What are equations in ${subject}?`, answer: `In ${subject}, equations are mathematical statements showing equality between expressions, used to find unknown values.` },
+          { question: `What are functions in ${subject}?`, answer: `In ${subject}, functions are relationships between inputs and outputs, where each input has exactly one output.` },
+          { question: `How do you solve basic problems in ${subject}?`, answer: `Basic ${subject} problems are solved by identifying what's given, what's asked, choosing appropriate methods, and checking solutions.` },
+          { question: `What is the importance of ${subject}?`, answer: `${subject} is important because it develops logical thinking, problem-solving skills, and provides tools for science and engineering.` }
+        ]
+      case 'medium':
+        return [
+          { question: `How do you work with complex expressions in ${subject}?`, answer: `Working with complex expressions in ${subject} requires understanding order of operations, combining like terms, and applying algebraic properties.` },
+          { question: `What are the key problem-solving strategies in ${subject}?`, answer: `Key strategies in ${subject} include breaking problems into steps, using multiple approaches, checking work, and understanding underlying concepts.` },
+          { question: `How do you graph functions in ${subject}?`, answer: `Graphing functions in ${subject} involves plotting points, understanding transformations, identifying key features like intercepts and asymptotes.` },
+          { question: `What are the applications of ${subject} in other fields?`, answer: `${subject} applies to physics, engineering, economics, computer science, and many other fields requiring quantitative analysis.` },
+          { question: `How do you verify solutions in ${subject}?`, answer: `Solutions in ${subject} are verified by substituting back into original equations, checking reasonableness, and using alternative methods.` }
+        ]
+      case 'hard':
+        return [
+          { question: `What are advanced techniques in ${subject}?`, answer: `Advanced ${subject} techniques include complex analysis, optimization methods, advanced algebraic structures, and sophisticated problem-solving approaches.` },
+          { question: `How do you approach multi-step problems in ${subject}?`, answer: `Multi-step ${subject} problems require systematic planning, breaking into sub-problems, maintaining accuracy, and synthesizing results.` },
+          { question: `What are the theoretical foundations of ${subject}?`, answer: `The theoretical foundations of ${subject} include axioms, theorems, proofs, and logical structures that ensure mathematical rigor.` },
+          { question: `How do you handle abstract concepts in ${subject}?`, answer: `Abstract concepts in ${subject} are handled through visualization, concrete examples, analogies, and building from familiar ideas.` },
+          { question: `What are the connections between different areas of ${subject}?`, answer: `Different areas of ${subject} connect through shared principles, similar techniques, and unified theoretical frameworks.` }
+        ]
+    }
+  } else if (subjectLower.includes('science') || subjectLower.includes('physics') || subjectLower.includes('chemistry') || subjectLower.includes('biology')) {
+    switch (difficulty) {
+      case 'easy':
+        return [
+          { question: `What is the scientific method in ${subject}?`, answer: `The scientific method in ${subject} is a systematic approach involving observation, hypothesis formation, experimentation, and conclusion drawing.` },
+          { question: `What are the basic concepts in ${subject}?`, answer: `Basic concepts in ${subject} include fundamental principles, key terminology, and foundational ideas that support advanced learning.` },
+          { question: `How do you conduct experiments in ${subject}?`, answer: `Experiments in ${subject} require careful planning, controlled variables, accurate measurements, and proper data recording.` },
+          { question: `What tools are used in ${subject}?`, answer: `${subject} uses various tools including measuring instruments, laboratory equipment, computational software, and analytical techniques.` },
+          { question: `Why is ${subject} important?`, answer: `${subject} is important for understanding natural phenomena, solving real-world problems, and advancing technology and medicine.` }
+        ]
+      case 'medium':
+        return [
+          { question: `How do you analyze data in ${subject}?`, answer: `Data analysis in ${subject} involves statistical methods, pattern recognition, error analysis, and drawing valid conclusions from evidence.` },
+          { question: `What are the key theories in ${subject}?`, answer: `Key theories in ${subject} are well-supported explanations that unify observations and predict new phenomena.` },
+          { question: `How do you design experiments in ${subject}?`, answer: `Experiment design in ${subject} requires identifying variables, controlling conditions, ensuring reproducibility, and minimizing bias.` },
+          { question: `What are the applications of ${subject}?`, answer: `${subject} applications include technology development, medical advances, environmental solutions, and industrial processes.` },
+          { question: `How do you interpret results in ${subject}?`, answer: `Result interpretation in ${subject} involves comparing to hypotheses, considering uncertainty, and relating to existing knowledge.` }
+        ]
+      case 'hard':
+        return [
+          { question: `What are advanced research methods in ${subject}?`, answer: `Advanced research in ${subject} uses sophisticated techniques, complex modeling, interdisciplinary approaches, and cutting-edge technology.` },
+          { question: `How do you handle complex systems in ${subject}?`, answer: `Complex systems in ${subject} require systems thinking, mathematical modeling, computational analysis, and understanding emergent properties.` },
+          { question: `What are the current frontiers in ${subject}?`, answer: `Current frontiers in ${subject} include emerging technologies, unsolved problems, interdisciplinary research, and novel theoretical frameworks.` },
+          { question: `How do you evaluate scientific evidence in ${subject}?`, answer: `Evaluating evidence in ${subject} requires critical thinking, understanding methodology, assessing reliability, and considering alternative explanations.` },
+          { question: `What are the ethical considerations in ${subject}?`, answer: `Ethical considerations in ${subject} include research integrity, environmental impact, safety protocols, and responsible application of knowledge.` }
+        ]
+    }
+  }
+  
+  // Generic subject handling
+  const genericQuestions = [
+    { question: `What are the fundamentals of ${subject}?`, answer: `The fundamentals of ${subject} include basic concepts, key terminology, and foundational principles that support advanced learning.` },
+    { question: `How do you study ${subject} effectively?`, answer: `Effective ${subject} study involves active learning, regular practice, connecting concepts, and applying knowledge to real situations.` },
+    { question: `What skills are developed through ${subject}?`, answer: `${subject} develops critical thinking, analytical skills, problem-solving abilities, and systematic approaches to complex challenges.` },
+    { question: `How does ${subject} connect to other disciplines?`, answer: `${subject} connects to other disciplines through shared methodologies, overlapping concepts, and interdisciplinary applications.` },
+    { question: `What are the career applications of ${subject}?`, answer: `${subject} has career applications in various fields, providing valuable skills and knowledge for professional development.` },
+    { question: `What are the main challenges in learning ${subject}?`, answer: `Main challenges in learning ${subject} include mastering complex concepts, developing problem-solving skills, and applying theoretical knowledge.` }
+  ]
+  
+  return genericQuestions
+}
+
+// Helper function to generate topic-specific flashcards with variety (kept for backward compatibility)
+function generateTopicFlashcard(topic: string, difficulty: string, cardIndex: number): { question: string, answer: string } {
+  const topicLower = topic.toLowerCase()
+  
+  // Create different types of questions for variety
+  const questionTypes = ['definition', 'application', 'example', 'comparison']
+  const questionType = questionTypes[cardIndex % questionTypes.length]
+  
+  if (topicLower.includes('quadratic')) {
+    switch (difficulty) {
+      case 'easy':
+        return questionType === 'definition' 
+          ? { question: 'What is a quadratic equation?', answer: 'A quadratic equation is a polynomial equation of degree 2, written in the form ax² + bx + c = 0, where a ≠ 0. The graph of a quadratic function is a parabola.' }
+          : { question: 'What is the standard form of a quadratic equation?', answer: 'The standard form is ax² + bx + c = 0, where a, b, and c are constants and a ≠ 0. This form makes it easy to identify the coefficients for solving.' }
+      case 'medium':
+        return questionType === 'application'
+          ? { question: 'How do you find the vertex of a quadratic function y = ax² + bx + c?', answer: 'The vertex is at x = -b/(2a). Substitute this x-value back into the equation to find the y-coordinate. The vertex form is y = a(x - h)² + k where (h,k) is the vertex.' }
+          : { question: 'What is the discriminant and what does it tell us?', answer: 'The discriminant is b² - 4ac. If positive, there are 2 real roots; if zero, 1 real root; if negative, no real roots (2 complex roots).' }
+      case 'hard':
+        return { question: 'Solve x² - 5x + 6 = 0 using factoring and the quadratic formula', answer: 'Factoring: (x - 2)(x - 3) = 0, so x = 2 or x = 3. Quadratic formula: x = (5 ± √(25-24))/2 = (5 ± 1)/2, giving x = 3 or x = 2.' }
+    }
+  } else if (topicLower.includes('algebra')) {
+    switch (difficulty) {
+      case 'easy':
+        return questionType === 'definition'
+          ? { question: 'What is algebra?', answer: 'Algebra is a branch of mathematics that uses symbols (usually letters) to represent unknown numbers or variables in equations and expressions.' }
+          : { question: 'What is a variable in algebra?', answer: 'A variable is a symbol (like x, y, or z) that represents an unknown value that can change. Variables allow us to write general mathematical relationships.' }
+      case 'medium':
+        return questionType === 'application'
+          ? { question: 'How do you solve the equation 3x + 7 = 22?', answer: 'Subtract 7 from both sides: 3x = 15. Then divide both sides by 3: x = 5. Check: 3(5) + 7 = 15 + 7 = 22 ✓' }
+          : { question: 'What are like terms and how do you combine them?', answer: 'Like terms have the same variables with the same exponents. Combine by adding/subtracting coefficients: 3x + 5x = 8x, but 3x + 5y cannot be simplified.' }
+      case 'hard':
+        return { question: 'Solve the system: 2x + 3y = 12 and x - y = 1', answer: 'From equation 2: x = y + 1. Substitute into equation 1: 2(y + 1) + 3y = 12 → 2y + 2 + 3y = 12 → 5y = 10 → y = 2. Then x = 3. Solution: (3, 2)' }
+    }
+  } else if (topicLower.includes('calculus')) {
+    switch (difficulty) {
+      case 'easy':
+        return questionType === 'definition'
+          ? { question: 'What is calculus?', answer: 'Calculus is the mathematical study of continuous change. It has two main branches: differential calculus (derivatives/rates of change) and integral calculus (areas/accumulation).' }
+          : { question: 'What is a derivative?', answer: 'A derivative represents the instantaneous rate of change of a function at a point. Geometrically, it\'s the slope of the tangent line to the curve at that point.' }
+      case 'medium':
+        return questionType === 'application'
+          ? { question: 'Find the derivative of f(x) = x³ + 2x² - 5x + 1', answer: 'Using the power rule: f\'(x) = 3x² + 4x - 5. The power rule states that d/dx(xⁿ) = nxⁿ⁻¹.' }
+          : { question: 'What is the chain rule?', answer: 'If f(g(x)) is a composite function, then its derivative is f\'(g(x)) × g\'(x). Used when you have a function inside another function.' }
+      case 'hard':
+        return { question: 'Find the derivative of y = ln(sin(x²))', answer: 'Using chain rule: dy/dx = (1/sin(x²)) × cos(x²) × 2x = (2x cos(x²))/sin(x²) = 2x cot(x²)' }
+    }
+  }
+  
+  // Generic topic handling
+  switch (difficulty) {
+    case 'easy':
+      return { 
+        question: `What are the basic concepts of ${topic}?`, 
+        answer: `${topic} involves fundamental principles and definitions that form the foundation for more advanced study. Focus on understanding key terminology and basic applications.` 
+      }
+    case 'medium':
+      return { 
+        question: `How do you apply ${topic} to solve problems?`, 
+        answer: `Applying ${topic} requires understanding the underlying principles, identifying relevant formulas or methods, and systematically working through problem-solving steps.` 
+      }
+    case 'hard':
+      return { 
+        question: `What are advanced techniques in ${topic}?`, 
+        answer: `Advanced ${topic} involves complex problem-solving, synthesis of multiple concepts, and application to real-world scenarios requiring critical thinking and analysis.` 
+      }
+    default:
+      return { 
+        question: `Explain the key principles of ${topic}`, 
+        answer: `${topic} encompasses important concepts that require understanding of definitions, applications, and relationships between different elements.` 
+      }
+  }
+}
+
+// Helper function to generate subject-specific flashcards with variety
+function generateSubjectFlashcard(subject: string, difficulty: string, cardIndex: number): { question: string, answer: string } {
+  const subjectLower = subject.toLowerCase()
+  
+  // Create different types of questions for variety
+  const questionTypes = ['definition', 'method', 'application', 'strategy']
+  const questionType = questionTypes[cardIndex % questionTypes.length]
+  
+  if (subjectLower.includes('math') || subjectLower.includes('algebra') || subjectLower.includes('calculus')) {
+    const mathTopics = ['variables', 'equations', 'functions', 'graphs', 'problem-solving']
+    const topic = mathTopics[cardIndex % mathTopics.length]
+    
+    switch (difficulty) {
+      case 'easy':
+        return {
+          question: `What is a ${topic} in ${subject}?`,
+          answer: `In ${subject}, ${topic} ${topic === 'variables' ? 'are symbols representing unknown values' : topic === 'equations' ? 'are mathematical statements showing equality between expressions' : topic === 'functions' ? 'are relationships between inputs and outputs' : topic === 'graphs' ? 'are visual representations of mathematical relationships' : 'involves systematic approaches to finding solutions'}.`
+        }
+      case 'medium':
+        return {
+          question: `How do you work with ${topic} in ${subject}?`,
+          answer: `Working with ${topic} in ${subject} requires understanding the underlying principles, applying appropriate methods, and checking your work for accuracy and reasonableness.`
+        }
+      case 'hard':
+        return {
+          question: `What are advanced concepts related to ${topic} in ${subject}?`,
+          answer: `Advanced ${topic} in ${subject} involves complex applications, multiple-step procedures, and connections to other mathematical concepts requiring deep understanding.`
+        }
+    }
+  } else if (subjectLower.includes('science') || subjectLower.includes('physics') || subjectLower.includes('chemistry') || subjectLower.includes('biology')) {
+    const scienceTopics = ['scientific method', 'data analysis', 'theories', 'experiments', 'applications']
+    const topic = scienceTopics[cardIndex % scienceTopics.length]
+    
+    switch (difficulty) {
+      case 'easy':
+        return {
+          question: `What is the ${topic} in ${subject}?`,
+          answer: `The ${topic} in ${subject} ${topic === 'scientific method' ? 'is a systematic approach to understanding natural phenomena through observation, hypothesis, and experimentation' : topic === 'data analysis' ? 'involves collecting, organizing, and interpreting information to draw conclusions' : topic === 'theories' ? 'are well-supported explanations for natural phenomena based on evidence' : topic === 'experiments' ? 'are controlled procedures designed to test hypotheses' : 'involve using scientific knowledge to solve real-world problems'}.`
+        }
+      case 'medium':
+        return {
+          question: `How do you apply ${topic} in ${subject}?`,
+          answer: `Applying ${topic} in ${subject} requires careful planning, systematic execution, and critical evaluation of results to ensure valid conclusions.`
+        }
+      case 'hard':
+        return {
+          question: `What are complex aspects of ${topic} in ${subject}?`,
+          answer: `Complex ${topic} in ${subject} involves advanced techniques, multiple variables, and sophisticated analysis requiring deep scientific understanding.`
+        }
+    }
+  }
+  
+  // Generic subject handling
+  const genericTopics = ['fundamentals', 'methods', 'applications', 'analysis', 'synthesis']
+  const topic = genericTopics[cardIndex % genericTopics.length]
+  
+  switch (difficulty) {
+    case 'easy':
+      return {
+        question: `What are the ${topic} of ${subject}?`,
+        answer: `The ${topic} of ${subject} include basic concepts, key terminology, and foundational principles that support more advanced learning.`
+      }
+    case 'medium':
+      return {
+        question: `How do you apply ${topic} in ${subject}?`,
+        answer: `Applying ${topic} in ${subject} involves understanding core concepts, using appropriate techniques, and connecting ideas to solve problems.`
+      }
+    case 'hard':
+      return {
+        question: `What are advanced ${topic} in ${subject}?`,
+        answer: `Advanced ${topic} in ${subject} require synthesis of multiple concepts, critical thinking, and sophisticated problem-solving approaches.`
+      }
+    default:
+      return {
+        question: `Explain the key aspects of ${subject}`,
+        answer: `${subject} involves understanding core principles, applying knowledge systematically, and developing skills for analysis and problem-solving.`
+      }
+  }
 }
 
 function getTopicQuestion(topic: string, difficulty: string): string {
@@ -1489,30 +1902,60 @@ function getTopicAnswer(topic: string, difficulty: string): string {
   
   if (topicLower.includes('quadratic')) {
     switch (difficulty) {
-      case 'easy': return 'ax² + bx + c = 0, where a ≠ 0'
-      case 'medium': return 'The vertex is at (-b/2a, f(-b/2a)) or use completing the square'
-      case 'hard': return 'x = (5 ± √(25-24))/2 = (5 ± 1)/2, so x = 3 or x = 2'
+      case 'easy': return 'ax² + bx + c = 0, where a ≠ 0. This is the standard form of a quadratic equation where a, b, and c are constants and a cannot be zero.'
+      case 'medium': return 'The vertex is at (-b/2a, f(-b/2a)). You can find it by completing the square or using the vertex formula. The vertex represents the maximum or minimum point of the parabola.'
+      case 'hard': return 'Using the quadratic formula: x = (5 ± √(25-24))/2 = (5 ± √1)/2 = (5 ± 1)/2. Therefore x = 6/2 = 3 or x = 4/2 = 2. The solutions are x = 3 and x = 2.'
     }
   } else if (topicLower.includes('algebra')) {
     switch (difficulty) {
-      case 'easy': return 'A variable is a symbol (usually a letter) that represents an unknown number'
-      case 'medium': return 'Isolate the variable by performing the same operations on both sides'
-      case 'hard': return '6x² + 3x - 2x - 1 = 6x² + x - 1'
+      case 'easy': return 'A variable is a symbol (usually a letter like x, y, or z) that represents an unknown number or value that can change. Variables allow us to write general mathematical expressions and equations.'
+      case 'medium': return 'To solve linear equations, isolate the variable by performing the same operations on both sides of the equation. Use inverse operations: addition/subtraction, then multiplication/division.'
+      case 'hard': return 'Using FOIL method: (3x + 2)(2x - 1) = 3x(2x) + 3x(-1) + 2(2x) + 2(-1) = 6x² - 3x + 4x - 2 = 6x² + x - 2'
     }
   } else if (topicLower.includes('calculus')) {
     switch (difficulty) {
-      case 'easy': return 'The rate of change or slope of a function at a point'
-      case 'medium': return 'd/dx(x²) = 2x'
-      case 'hard': return 'If f(g(x)), then f\'(g(x)) × g\'(x)'
+      case 'easy': return 'A derivative represents the instantaneous rate of change or slope of a function at any given point. It tells us how fast a function is changing at that specific point.'
+      case 'medium': return 'Using the power rule: d/dx(x²) = 2x¹ = 2x. The derivative of x² with respect to x is 2x.'
+      case 'hard': return 'The chain rule states: if f(g(x)), then the derivative is f\'(g(x)) × g\'(x). This is used when you have a function inside another function (composite functions).'
+    }
+  } else if (topicLower.includes('physics')) {
+    switch (difficulty) {
+      case 'easy': return `${topic} involves the study of matter, energy, and their interactions. It uses mathematical principles to describe natural phenomena and predict behavior of physical systems.`
+      case 'medium': return `${topic} requires understanding fundamental laws and principles, applying mathematical formulas, and analyzing relationships between different physical quantities like force, motion, energy, and time.`
+      case 'hard': return `Advanced ${topic} involves complex problem-solving using calculus, vector analysis, and sophisticated mathematical models to describe phenomena like electromagnetic fields, quantum mechanics, or thermodynamics.`
+    }
+  } else if (topicLower.includes('chemistry')) {
+    switch (difficulty) {
+      case 'easy': return `${topic} is the study of matter, its properties, composition, and the changes it undergoes during chemical reactions. It involves atoms, molecules, and their interactions.`
+      case 'medium': return `${topic} requires understanding atomic structure, chemical bonding, reaction mechanisms, and stoichiometry. Key concepts include balancing equations, calculating molar masses, and predicting reaction products.`
+      case 'hard': return `Advanced ${topic} involves complex reaction mechanisms, thermodynamics, kinetics, and quantum chemistry. It requires mastering concepts like orbital theory, reaction rates, and equilibrium constants.`
+    }
+  } else if (topicLower.includes('biology')) {
+    switch (difficulty) {
+      case 'easy': return `${topic} is the study of living organisms, their structure, function, growth, and evolution. It covers everything from cells and genetics to ecosystems and biodiversity.`
+      case 'medium': return `${topic} involves understanding cellular processes, genetics, evolution, anatomy, and physiology. Key concepts include DNA replication, protein synthesis, metabolism, and ecological relationships.`
+      case 'hard': return `Advanced ${topic} requires deep understanding of molecular biology, biochemistry, genetics, and complex biological systems. It involves analyzing pathways, genetic engineering, and evolutionary mechanisms.`
+    }
+  } else if (topicLower.includes('history')) {
+    switch (difficulty) {
+      case 'easy': return `${topic} involves studying past events, people, and civilizations to understand how they shaped our modern world. It includes analyzing causes, effects, and patterns in human development.`
+      case 'medium': return `${topic} requires analyzing primary sources, understanding chronology, and examining the social, political, and economic factors that influenced historical events and their consequences.`
+      case 'hard': return `Advanced ${topic} involves critical analysis of historical interpretations, comparing multiple perspectives, and understanding complex relationships between different historical factors and their long-term impacts.`
+    }
+  } else if (topicLower.includes('literature') || topicLower.includes('english')) {
+    switch (difficulty) {
+      case 'easy': return `${topic} involves reading, analyzing, and interpreting written works including novels, poems, plays, and essays. It focuses on understanding themes, characters, and literary devices.`
+      case 'medium': return `${topic} requires analyzing literary techniques, understanding historical context, and interpreting symbolism, metaphors, and themes. It involves critical thinking about author's purpose and message.`
+      case 'hard': return `Advanced ${topic} involves complex literary analysis, comparing different works and periods, understanding literary theory, and developing sophisticated interpretations of texts and their cultural significance.`
     }
   }
   
-  // Generic answers for other topics
+  // Enhanced generic answers for other topics
   switch (difficulty) {
-    case 'easy': return `${topic} is a fundamental concept that involves...`
-    case 'medium': return `The main principles of ${topic} include systematic approaches and key methodologies...`
-    case 'hard': return `To apply ${topic} effectively, consider the complex relationships and advanced techniques...`
-    default: return `Review the fundamental principles and core topics of ${topic}`
+    case 'easy': return `${topic} is a fundamental concept that involves understanding basic principles, definitions, and core ideas. Start by learning the key terminology and basic applications in real-world contexts.`
+    case 'medium': return `${topic} requires understanding the main principles, methodologies, and relationships between different concepts. Focus on how these ideas connect and apply to solve problems or analyze situations.`
+    case 'hard': return `Advanced ${topic} involves complex analysis, synthesis of multiple concepts, and application to challenging scenarios. It requires deep understanding of underlying principles and ability to think critically and creatively.`
+    default: return `${topic} encompasses a range of concepts and principles that build upon each other. Study the fundamentals first, then progress to more complex applications and analysis.`
   }
 }
 
