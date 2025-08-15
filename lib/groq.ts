@@ -114,26 +114,53 @@ export async function generateStudyPlan(
           typeof existingScheduleContext === 'string' && 
           existingScheduleContext.includes('AVAILABLE TIME SLOTS')
         
-        const fallbackPlan = {
-          name: `${request.subjects.join(', ')} Study Plan`,
-          totalHours: request.dailyHours * (request.includeWeekends === 'all' ? 7 : 5),
+        const fallbackPlan: StudyPlan = {
+          id: `fallback_plan_${Date.now()}`,
+          name: `${request.subjects.join(', ')} Study Plan (Smart Generated)`,
+          subjects: request.subjects,
+          studyLevel: request.studyLevel,
+          totalHours: request.dailyHours * (request.includeWeekends === 'all' ? 7 : 5) * 4, // 4 weeks
+          dailyHours: request.dailyHours,
+          startDate: new Date().toISOString().split('T')[0],
+          targetDate: request.targetDate,
+          goals: request.goals,
           weeklySchedule: createFallbackWeeklySchedule(request, hasExistingSchedule ? existingScheduleContext : null),
           sessions: createFallbackSessions(request, hasExistingSchedule ? existingScheduleContext : null),
           flashcards: createFallbackFlashcards(request),
+          revisionSchedule: [],
           learningTips: [
             'Use active recall techniques during study sessions',
             'Take regular breaks every 25-30 minutes',
             'Review material within 24 hours of learning',
             'Practice spaced repetition for better retention',
-            'Create summaries and mind maps for complex topics'
+            'Create summaries and mind maps for complex topics',
+            'Test yourself frequently instead of just re-reading',
+            'Study in a quiet, well-lit environment',
+            'Stay hydrated and maintain good posture while studying'
           ],
           examStrategy: [
             'Create a detailed revision timeline leading up to exams',
-            'Focus on weak areas identified during practice',
             'Use past papers and mock tests to simulate exam conditions',
-            'Maintain a consistent study routine and sleep schedule'
+            'Maintain a consistent study routine and sleep schedule',
+            'Practice time management during mock exams',
+            'Review key concepts the night before, avoid cramming new material',
+            'Start with easier questions to build confidence'
           ],
-          onlineResources: generateOnlineResources(request.subjects, request.specificTopics)
+          onlineResources: generateOnlineResources(request.subjects, request.specificTopics),
+          progress: {
+            completedSessions: 0,
+            totalSessions: 0,
+            completedHours: 0,
+            totalHours: request.dailyHours * (request.includeWeekends === 'all' ? 7 : 5) * 4
+          },
+          status: 'active',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+        
+        // Update progress with actual session count
+        if (fallbackPlan.progress) {
+          fallbackPlan.progress.totalSessions = fallbackPlan.sessions.length
         }
         
         console.log('Created fallback plan:', fallbackPlan)
@@ -428,7 +455,10 @@ function generateFallbackStudyPlan(request: StudyPlanRequest, existingScheduleCo
     updatedAt: new Date().toISOString()
   }
   
-  fallbackPlan.progress.totalSessions = fallbackPlan.sessions.length
+  // Update progress with actual session count
+  if (fallbackPlan.progress) {
+    fallbackPlan.progress.totalSessions = fallbackPlan.sessions.length
+  }
   
   console.log('Fallback study plan generated successfully')
   return fallbackPlan
