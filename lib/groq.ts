@@ -1330,7 +1330,7 @@ function createFallbackWeeklySchedule(request: StudyPlanRequest, existingSchedul
 }
 
 function createFallbackSessions(request: StudyPlanRequest, existingScheduleContext?: string | null) {
-  const sessions = []
+  const sessions: any[] = []
   const startDate = new Date()
   let sessionId = 1
   
