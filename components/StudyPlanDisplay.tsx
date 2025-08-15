@@ -239,12 +239,12 @@ ${studyPlan.flashcards ? studyPlan.flashcards.map((card, index) =>
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 px-4">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Your Personalized Study Plan</h1>
-          <p className="text-gray-600 mt-2">AI-generated plan tailored to your needs</p>
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">Your Personalized Study Plan</h1>
+          <p className="text-sm sm:text-base text-gray-600 mt-1 sm:mt-2">AI-generated plan tailored to your needs</p>
         </div>
         <div className="flex gap-2">
           <Button onClick={downloadPlan} className="bg-studypal-amber hover:bg-studypal-amber/90 text-studypal-gray-900 font-semibold shadow-lg btn-enhanced transform hover:scale-105 transition-all duration-300 font-mono-ui">
