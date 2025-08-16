@@ -33,45 +33,45 @@ export default function Home() {
       {/* Gradient overlay for depth */}
       <div className="fixed inset-0 bg-gradient-to-b from-transparent via-transparent to-white/5 pointer-events-none z-10"></div>
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-24 z-20">
-        <div className="container mx-auto px-4 text-center">
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20 sm:pt-24 z-20">
+        <div className="container mx-auto px-4 sm:px-6 text-center">
           <div className="max-w-6xl mx-auto">
             
             <div className="animate-slide-up">
               {/* Main Headline */}
               <div className="mb-12">
                 {/* Visual Icons */}
-                <div className="flex items-center justify-center gap-6 mb-8">
-                  <div className="p-4 bg-gradient-to-br from-studypal-blue to-studypal-cyan rounded-2xl shadow-lg animate-float" style={{animationDelay: '0s'}}>
-                    <Brain className="h-8 w-8 text-white" />
+                <div className="flex items-center justify-center gap-4 sm:gap-6 mb-6 sm:mb-8">
+                  <div className="p-3 sm:p-4 bg-gradient-to-br from-studypal-blue to-studypal-cyan rounded-xl sm:rounded-2xl shadow-lg animate-float" style={{animationDelay: '0s'}}>
+                    <Brain className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
                   </div>
-                  <div className="p-4 bg-gradient-to-br from-studypal-green to-studypal-green/80 rounded-2xl shadow-lg animate-float" style={{animationDelay: '1s'}}>
-                    <Calendar className="h-8 w-8 text-white" />
+                  <div className="p-3 sm:p-4 bg-gradient-to-br from-studypal-green to-studypal-green/80 rounded-xl sm:rounded-2xl shadow-lg animate-float" style={{animationDelay: '1s'}}>
+                    <Calendar className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
                   </div>
-                  <div className="p-4 bg-gradient-to-br from-studypal-amber to-studypal-amber/80 rounded-2xl shadow-lg animate-float" style={{animationDelay: '2s'}}>
-                    <Target className="h-8 w-8 text-white" />
+                  <div className="p-3 sm:p-4 bg-gradient-to-br from-studypal-amber to-studypal-amber/80 rounded-xl sm:rounded-2xl shadow-lg animate-float" style={{animationDelay: '2s'}}>
+                    <Target className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
                   </div>
                 </div>
 
-                <h1 className="text-6xl lg:text-8xl font-bold mb-6 leading-tight font-heading">
+                <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-bold mb-6 leading-tight font-heading">
                   <span className="text-studypal-gray-600">Master</span><br/>
                   <span className="text-gradient">Study Success</span><br/>
                   <span className="text-studypal-gray-600">with AI</span>
                 </h1>
                 
-                <p className="text-xl lg:text-2xl text-studypal-gray-500 leading-relaxed max-w-4xl mx-auto mt-8">
+                <p className="text-lg sm:text-xl lg:text-2xl text-studypal-gray-500 leading-relaxed max-w-4xl mx-auto mt-8 px-4">
                   AI-powered study plans that adapt to your learning style and schedule
                 </p>
               </div>
               
               {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
-                <Button asChild size="lg" className="text-xl px-12 py-8 bg-gradient-to-r from-studypal-blue to-studypal-cyan hover:from-studypal-blue/90 hover:to-studypal-cyan/90 shadow-glow btn-enhanced transform hover:scale-105 transition-all duration-300 font-mono-ui">
+              <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center mb-16 px-4">
+                <Button asChild size="lg" className="w-full sm:w-auto text-lg sm:text-xl px-8 sm:px-12 py-6 sm:py-8 bg-gradient-to-r from-studypal-blue to-studypal-cyan hover:from-studypal-blue/90 hover:to-studypal-cyan/90 shadow-glow btn-enhanced transform hover:scale-105 transition-all duration-300 font-mono-ui">
                   <Link href="/study-assistant">
-                    Create Study Plan <ArrowRight className="ml-3 h-6 w-6" />
+                    Create Study Plan <ArrowRight className="ml-2 sm:ml-3 h-5 sm:h-6 w-5 sm:w-6" />
                   </Link>
                 </Button>
-                <Button asChild size="lg" className="text-xl px-12 py-8 bg-studypal-amber hover:bg-studypal-amber/90 text-studypal-gray-900 font-semibold shadow-lg btn-enhanced transform hover:scale-105 transition-all duration-300 font-mono-ui">
+                <Button asChild size="lg" className="w-full sm:w-auto text-lg sm:text-xl px-8 sm:px-12 py-6 sm:py-8 bg-studypal-amber hover:bg-studypal-amber/90 text-studypal-gray-900 font-semibold shadow-lg btn-enhanced transform hover:scale-105 transition-all duration-300 font-mono-ui">
                   <Link href="/examples">
                     View Showcase
                   </Link>
@@ -79,17 +79,17 @@ export default function Home() {
               </div>
               
               {/* Feature Badges */}
-              <div className="flex flex-wrap items-center justify-center gap-8 text-lg mb-12">
-                <div className="flex items-center gap-3 bg-white backdrop-blur-sm rounded-full px-6 py-3 shadow-lg border border-studypal-blue/30">
-                  <div className="w-3 h-3 bg-studypal-blue rounded-full animate-pulse"></div>
+              <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 lg:gap-8 text-sm sm:text-base lg:text-lg mb-12 px-4">
+                <div className="flex items-center gap-2 sm:gap-3 bg-white backdrop-blur-sm rounded-full px-4 sm:px-6 py-2 sm:py-3 shadow-lg border border-studypal-blue/30">
+                  <div className="w-2 sm:w-3 h-2 sm:h-3 bg-studypal-blue rounded-full animate-pulse"></div>
                   <span className="font-semibold text-studypal-gray-700 font-mono-ui">AI-Powered</span>
                 </div>
-                <div className="flex items-center gap-3 bg-white backdrop-blur-sm rounded-full px-6 py-3 shadow-lg border border-studypal-green/30">
-                  <div className="w-3 h-3 bg-studypal-green rounded-full animate-pulse"></div>
+                <div className="flex items-center gap-2 sm:gap-3 bg-white backdrop-blur-sm rounded-full px-4 sm:px-6 py-2 sm:py-3 shadow-lg border border-studypal-green/30">
+                  <div className="w-2 sm:w-3 h-2 sm:h-3 bg-studypal-green rounded-full animate-pulse"></div>
                   <span className="font-semibold text-studypal-gray-700 font-mono-ui">Free to Start</span>
                 </div>
-                <div className="flex items-center gap-3 bg-white backdrop-blur-sm rounded-full px-6 py-3 shadow-lg border border-studypal-amber/30">
-                  <div className="w-3 h-3 bg-studypal-amber rounded-full animate-pulse"></div>
+                <div className="flex items-center gap-2 sm:gap-3 bg-white backdrop-blur-sm rounded-full px-4 sm:px-6 py-2 sm:py-3 shadow-lg border border-studypal-amber/30">
+                  <div className="w-2 sm:w-3 h-2 sm:h-3 bg-studypal-amber rounded-full animate-pulse"></div>
                   <span className="font-semibold text-studypal-gray-700 font-mono-ui">Instant Results</span>
                 </div>
               </div>
@@ -139,7 +139,7 @@ export default function Home() {
             </p>
           </div>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 max-w-7xl mx-auto px-4">
             <Card className="group text-center border-0 glass-effect hover-lift hover-glow transition-all duration-300">
               <CardHeader className="pb-4">
                 <div className="relative mb-6">
@@ -246,16 +246,16 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-studypal-blue to-studypal-cyan relative z-20">
-        <div className="container mx-auto px-4 text-center">
+      <section className="py-16 sm:py-20 bg-gradient-to-r from-studypal-blue to-studypal-cyan relative z-20">
+        <div className="container mx-auto px-4 sm:px-6 text-center">
           <div className="max-w-3xl mx-auto">
-            <h2 className="text-3xl lg:text-4xl font-bold text-white mb-6">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-4 sm:mb-6">
               Ready to Transform Your Study Routine?
             </h2>
-            <p className="text-xl text-white/90 mb-8">
+            <p className="text-lg sm:text-xl text-white/90 mb-6 sm:mb-8 px-4">
               Start your personalized learning journey with StudyPal's AI-powered study plans tailored to your needs.
             </p>
-            <Button asChild size="lg" className="text-lg px-8 py-6 bg-studypal-amber hover:bg-studypal-amber/90 text-studypal-gray-900 font-semibold shadow-lg btn-enhanced font-mono-ui">
+            <Button asChild size="lg" className="w-full sm:w-auto text-lg px-8 py-6 bg-studypal-amber hover:bg-studypal-amber/90 text-studypal-gray-900 font-semibold shadow-lg btn-enhanced font-mono-ui">
               <Link href="/study-assistant">
                 Get Started Free <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
