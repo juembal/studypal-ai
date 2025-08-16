@@ -31,9 +31,9 @@ const navigation = {
 export default function Footer() {
   return (
     <footer className="bg-gray-900 border-t border-gray-800">
-      <div className="max-w-7xl mx-auto px-6 py-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
         {/* Main Footer Content */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-12">
           
           {/* Brand Section */}
           <div className="lg:col-span-2">
@@ -89,7 +89,7 @@ export default function Footer() {
               </div>
             </div>
             
-            <p className="text-gray-300 mb-8 max-w-md leading-relaxed">
+            <p className="text-gray-300 mb-6 sm:mb-8 max-w-md leading-relaxed text-sm sm:text-base">
               Transform your learning journey with personalized AI-generated study plans, 
               smart scheduling, and intelligent progress tracking.
             </p>
