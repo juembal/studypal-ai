@@ -92,7 +92,7 @@ export default function Chatbot({ isOpen, onToggle }: ChatbotProps) {
     }
   }
 
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       sendMessage()
@@ -105,7 +105,7 @@ export default function Chatbot({ isOpen, onToggle }: ChatbotProps) {
 
   if (!isOpen) {
     return (
-      <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 group">
+      <div className="fixed bottom-6 right-6 z-50 group">
         <Button
           onClick={onToggle}
           className="h-16 w-16 rounded-full bg-gradient-to-r from-studypal-blue to-studypal-cyan hover:from-studypal-blue/80 hover:to-studypal-cyan/80 shadow-glow hover:shadow-glow-xl transition-all duration-300 hover:scale-125 animate-float transform active:scale-95 hover:rotate-12 hover:shadow-blue-500/50"
@@ -130,8 +130,8 @@ export default function Chatbot({ isOpen, onToggle }: ChatbotProps) {
   }
 
   return (
-    <Card className={`fixed bottom-4 right-4 w-[calc(100vw-2rem)] max-w-96 sm:bottom-6 sm:right-6 sm:w-96 shadow-xl hover:shadow-2xl z-50 transition-all duration-500 ease-in-out transform hover:scale-[1.02] ${
-      isMinimized ? 'h-16' : 'h-[500px] max-h-[calc(100vh-8rem)]'
+    <Card className={`fixed bottom-6 right-6 w-96 shadow-xl hover:shadow-2xl z-50 transition-all duration-500 ease-in-out transform hover:scale-[1.02] ${
+      isMinimized ? 'h-16' : 'h-[500px]'
     } animate-slide-up`}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 cursor-pointer hover:bg-gray-50 transition-colors duration-200 rounded-t-lg" 
                   onClick={() => setIsMinimized(!isMinimized)}>
@@ -171,9 +171,14 @@ export default function Chatbot({ isOpen, onToggle }: ChatbotProps) {
                   <div className="flex items-start gap-2">
                     {message.role === 'assistant' && <Bot className="h-4 w-4 mt-0.5 flex-shrink-0" />}
                     {message.role === 'user' && <User className="h-4 w-4 mt-0.5 flex-shrink-0" />}
-                    <div className="text-sm break-words overflow-wrap-anywhere whitespace-pre-wrap">
-                      {message.content}
-                    </div>
+                    <div className="text-sm break-words overflow-wrap-anywhere whitespace-pre-wrap" 
+                         dangerouslySetInnerHTML={{
+                           __html: message.content
+                             .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                             .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                             .replace(/`(.*?)`/g, '<code class="bg-gray-200 px-1 rounded text-xs">$1</code>')
+                         }} 
+                    />
                   </div>
                 </div>
               </div>
