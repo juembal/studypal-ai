@@ -24,8 +24,8 @@ export const metadata: Metadata = {
   title: 'StudyPal - Your AI-Powered Study Companion',
   description: 'Generate personalized study plans, revision schedules, and learning tips powered by AI',
   icons: {
-    icon: '/favicon.svg',
-    shortcut: '/favicon.svg',
+    icon: [{ url: '/favicon.svg', type: 'image/svg+xml' }],
+    shortcut: ['/favicon.svg'],
   },
 }
 
