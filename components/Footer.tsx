@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Github, Mail, Heart, User } from 'lucide-react'
+import { Github, Mail, User } from 'lucide-react'
 
 const navigation = {
   main: [
@@ -153,15 +153,10 @@ export default function Footer() {
 
         {/* Bottom Section */}
         <div className="border-t border-gray-800 mt-16 pt-8">
-          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+          <div className="flex justify-center">
             <p className="text-gray-400 text-sm">
               © 2025 StudyPal AI. All rights reserved.
             </p>
-            <div className="flex items-center space-x-2 text-gray-500 text-sm">
-              <span>Built with</span>
-              <Heart className="h-4 w-4 text-red-500" />
-              <span>by juembal for students worldwide</span>
-            </div>
           </div>
         </div>
       </div>
