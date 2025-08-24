@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { ChatMessage, StudyPalChatbot } from '@/lib/chatbot'
 import { MessageCircle, Send, X, Minimize2, Maximize2, Bot, User, Loader2 } from 'lucide-react'
 import axios from 'axios'
+import ReactMarkdown from 'react-markdown'
 
 interface ChatbotProps {
   isOpen: boolean
@@ -171,8 +172,25 @@ export default function Chatbot({ isOpen, onToggle }: ChatbotProps) {
                   <div className="flex items-start gap-2">
                     {message.role === 'assistant' && <Bot className="h-4 w-4 mt-0.5 flex-shrink-0" />}
                     {message.role === 'user' && <User className="h-4 w-4 mt-0.5 flex-shrink-0" />}
-                    <div className="text-sm break-words overflow-wrap-anywhere whitespace-pre-wrap">
-                      {message.content}
+                    <div className="text-sm break-words overflow-wrap-anywhere prose prose-sm max-w-none">
+                      <ReactMarkdown 
+                        components={{
+                          p: ({children}) => <p className="mb-2 last:mb-0">{children}</p>,
+                          strong: ({children}) => <strong className="font-bold">{children}</strong>,
+                          em: ({children}) => <em className="italic">{children}</em>,
+                          ul: ({children}) => <ul className="list-disc list-inside mb-2">{children}</ul>,
+                          ol: ({children}) => <ol className="list-decimal list-inside mb-2">{children}</ol>,
+                          li: ({children}) => <li className="mb-1">{children}</li>,
+                          code: ({children}) => <code className="bg-gray-200 px-1 py-0.5 rounded text-xs">{children}</code>,
+                          a: ({children, href}) => (
+                            <a href={href} className="text-blue-500 hover:underline" target="_blank" rel="noopener noreferrer">
+                              {children}
+                            </a>
+                          ),
+                        }}
+                      >
+                        {message.content}
+                      </ReactMarkdown>
                     </div>
                   </div>
                 </div>
