@@ -270,43 +270,8 @@ Built with ❤️ by the StudyPal team using:
 | Slow Generation | Normal for complex plans (10-15s) |
 
 ### Get Help
-- 📖 Check the [documentation](https://github.com/yourusername/studypal-ai/wiki)
 - 🐛 Report bugs via [GitHub Issues](https://github.com/yourusername/studypal-ai/issues)
 - 💬 Join our [Discord community](https://discord.gg/studypal)
-- 📧 Email support: support@studypal.ai
-
-## 🚀 Roadmap
-
-### Version 2.0 (Current)
-- ✅ AI Chatbot (PalBot)
-- ✅ Interactive Quiz System
-- ✅ Dashboard with Analytics
-- ✅ Multiple Study Plan Management
-- ✅ Enhanced UI/UX with Animations
-- ✅ Study/Test Modes for Flashcards
-
-### Version 2.1 (Q1 2025)
-- [ ] User Authentication (Auth0/Clerk)
-- [ ] Cloud Storage for Plans
-- [ ] Collaborative Study Groups
-- [ ] Study Streak Tracking
-- [ ] Achievement System
-
-### Version 3.0 (Q2 2025)
-- [ ] Mobile Apps (iOS/Android)
-- [ ] Calendar Integration (Google/Outlook)
-- [ ] Voice Assistant
-- [ ] PDF/Document Analysis
-- [ ] Video Learning Resources
-- [ ] AI-Generated Practice Tests
-
-### Future Features
-- [ ] Spaced Repetition Algorithm
-- [ ] Pomodoro Timer Integration
-- [ ] Mind Map Generator
-- [ ] Study Music Integration
-- [ ] VR Study Environments
-- [ ] Multi-language Support
 
 ## 📊 Performance
 
